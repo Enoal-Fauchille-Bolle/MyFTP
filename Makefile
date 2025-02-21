@@ -9,6 +9,9 @@
 
 SRC	=	\
 		src/main.c	\
+		src/connection.c	\
+		src/client_handler.c	\
+		src/socket.c	\
 
 NAME	=	myftp
 
