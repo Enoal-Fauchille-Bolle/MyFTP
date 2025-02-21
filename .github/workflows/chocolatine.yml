@@ -322,7 +322,7 @@ jobs:
           # Parsing executables
           banned_function_detected=0
           for executable in "${executables_list[@]}"; do
-              nm $executable -u | while IFS= read -r line; do
+              while IFS= read -r line; do
                   info=$(echo "$line" | xargs | cut -d ' ' -f 2)
                   function_name=$(echo "$info" | cut -d '@' -f 1)
                   source=$(echo "$info" | cut -d '@' -f 2)
@@ -331,14 +331,18 @@ jobs:
                   if [[ "$info" == "__gmon_start__" ]] || [[ "$function_name" == "__libc_start_main" ]]; then
                       continue
                   fi
-                  if is_allowed "$function_name" "$source_name" == 0; then
-                      echo "::error file=${executable},title=Banned function detected::'$function_name' is not allowed"
+                  is_allowed "$function_name" "$source_name"
+                  if [[ $? == 0 ]]; then
                       banned_function_detected=1
+                      echo "::error file=${executable},title=Banned function detected::'$function_name' is not allowed"
                   fi
-              done
+              done < <(nm $executable -u)
           done
-          if [[ $banned_function_detected == 1 ]]; then
+          echo "$banned_function_detected"
+          if [[ $banned_function_detected == "1" ]]; then
               exit 1
+          else
+              exit 0
           fi
 
   repository_mirroring:
