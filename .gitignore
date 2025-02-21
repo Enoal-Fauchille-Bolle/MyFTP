@@ -1,0 +1,17 @@
+.vscode/
+vgcore.*
+\#*\#
+*~
+*.log
+*.a
+*.o
+*.so
+*.zip
+a.out
+*.gcda
+*.gcno
+*.todo
+unit_tests
+main
+organization
+myftp

@@ -1,0 +1,359 @@
+name: Chocolatine
+
+# Todo:
+# - Check commit message
+
+on:
+  push:
+    branches:
+      - "*"
+      - "!**ga-ignore-*"
+  pull_request:
+    branches:
+      - "*"
+      - "!**ga-ignore-*"
+
+env:
+  MIRROR_URL: "git@github.com:EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle.git"
+  EXECUTABLES: "myftp"
+
+  # Check Banned Functions
+  CHECK_BANNED_FUNCTIONS_MODE: "banned"
+  ALLOWED_FUNCTIONS: ""
+  BANNED_FUNCTIONS: "recv, send, fcntl, ioctl, setsockopt, setsockopt, recvfrom, recvmsg, sendto, sendmsg"
+
+  # Check Memory Leaks
+  VALGRIND_TIMEOUT: 10 # in seconds
+
+jobs:
+  check_coding_style:
+    name: Check Coding Style
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
+    container:
+      image: ghcr.io/epitech/coding-style-checker:latest
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run coding style checker
+        id: check
+        run: check.sh $(pwd) $(pwd)
+
+      - name: Getting result
+        id: result
+        shell: bash
+        run: |
+          if [ -s "coding-style-reports.log" ]; then
+            echo "There are coding style errors."
+            while IFS= read -r line; do
+              file=$(echo "$line" | cut -d ' ' -f 1 | cut -d ':' -f 1)
+              line_number=$(echo "$line" | cut -d ' ' -f 1 | cut -d ':' -f 2)
+              severity=$(echo "$line" | cut -d ' ' -f 2 | cut -d ':' -f 1)
+              code=$(echo "$line" | cut -d ' ' -f 2 | cut -d ':' -f 2)
+              echo "::error file=$(echo "$file" | cut -c 3-),line=${line_number},title=${severity} coding style error::${code}"
+            done < coding-style-reports.log
+            exit 1
+          else
+            echo "No coding style errors found."
+          fi
+
+  check_program_compilation:
+    name: Check Program Compilation
+    runs-on: ubuntu-latest
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Building Project
+        run: make
+        timeout-minutes: 2
+
+      - name: Cleaning Project
+        run: make clean
+
+      - name: Verifying Compilation
+        shell: bash
+        run: |
+          executables=()
+          for executable in $(echo "${{ env.EXECUTABLES }}" | tr ':' '\n'); do
+            executables+=("$executable")
+          done
+          failed=false
+          for executable in "${executables[@]}"; do
+            if [ ! -x "$executable" ]; then
+                echo "Executable '$executable' does not exist or is not executable."
+                echo "::error file=${executable},title=Executable does not exist or is not executable::Executable '$executable' does not exist or is not executable."
+                failed=true
+            fi
+          done
+          if [ "$failed" = true ]; then
+              exit 1
+          fi
+
+  check_tests:
+    name: Check Tests
+    runs-on: ubuntu-latest
+    needs: [check_program_compilation]
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }} && ${{ github.event_name == 'pull_request' }}
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Running Tests
+        run: make tests_run
+        timeout-minutes: 2
+
+      - name: Checking Coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          coverage=$(gcovr --exclude tests/ --json-summary -o coverage.json && grep -o '"line_percent": [0-9.]*' coverage.json | tail -n 1 | grep -o '[0-9.]*')
+          rm -f coverage.json
+          if (( $(awk "BEGIN {print ($coverage < 70)}") )); then
+              rounded_coverage=${coverage%.*}
+              echo "::error::Coverage is below 70% (Current coverage: ${rounded_coverage}%)"
+              exit 1
+          fi
+
+  check_memory_leaks:
+    name: Check Memory Leaks
+    runs-on: ubuntu-latest
+    needs: [check_program_compilation]
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+
+      - name: Building Project
+        run: make
+        timeout-minutes: 2
+
+      - name: Run Valgrind
+        shell: bash
+        run: |
+          # Setting up the list of executables
+          executables_list=()
+          IFS=',' read -ra elements <<< "${{ env.EXECUTABLES }}"
+          for element in "${elements[@]}"; do
+              element=$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              if [[ ! -x "$element" ]]; then
+                  echo "Executable '$element' does not exist or is not executable."
+                  echo "::error file=${element},title=Executable does not exist or is not executable::Executable '$element' does not exist or is not executable."
+                  exit 1
+              fi
+              executables_list+=("$element")
+          done
+
+          for executable in "${executables_list[@]}"; do
+              # valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 2>&1 | tee valgrind.log
+              timeout ${{ env.VALGRIND_TIMEOUT }} valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 2>&1 | tee valgrind.log
+              if grep -q "ERROR SUMMARY: [^0]" valgrind.log; then
+                  errors=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $4}')
+                  contexts=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $7}')
+                  echo "::error::Memory leaks detected. $errors errors from $contexts contexts"
+                  rm valgrind.log
+                  exit 1
+              fi
+              rm valgrind.log
+          done
+
+  check_banned_functions:
+    name: Check Banned Functions
+    runs-on: ubuntu-latest
+    needs: [check_program_compilation]
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
+    container:
+      image: epitechcontent/epitest-docker
+    env:
+      NCURSES_FUNCTIONS: "addch, addchnstr, addchstr, addnstr, addstr, attroff, attron, attrset, attr_get, attr_off, attr_on, attr_set, baudrate, beep, bkgd, bkgdset, border, box, can_change_color, cbreak, chgat, clear, clearok, clrtobot, clrtoeol, color_content, color_set, COLOR_PAIR, copywin, curs_set, def_prog_mode, def_shell_mode, delay_output, delch, delscreen, delwin, deleteln, derwin, doupdate, dupwin, echo, echochar, erase, endwin, erasechar, filter, flash, flushinp, getbkgd, getch, getnstr, getstr, getwin, halfdelay, has_colors, has_ic, has_il, hline, idcok, idlok, immedok, inch, inchnstr, inchstr, initscr, init_color, init_pair, innstr, insch, insdelln, insertln, insnstr, insstr, instr, intrflush, isendwin, is_linetouched, is_wintouched, keyname, keypad, killchar, leaveok, longname, meta, move, mvaddch, mvaddchnstr, mvaddchstr, mvaddnstr, mvaddstr, mvchgat, mvcur, mvdelch, mvderwin, mvgetch, mvgetnstr, mvgetstr, mvhline, mvinch, mvinchnstr, mvinchstr, mvinnstr, mvinsch, mvinsnstr, mvinsstr, mvinstr, mvprintw, mvscanw, mvvline, mvwaddch, mvwaddchnstr, mvwaddchstr, mvwaddnstr, mvwaddstr, mvwchgat, mvwdelch, mvwgetch, mvwgetnstr, mvwgetstr, mvwhline, mvwin, mvwinch, mvwinchnstr, mvwinchstr, mvwinnstr, mvwinsch, mvwinsnstr, mvwinsstr, mvwinstr, mvwprintw, mvwscanw, mvwvline, napms, newpad, newterm, newwin, nl, nocbreak, nodelay, noecho, nonl, noqiflush, noraw, notimeout, overlay, overwrite, pair_content, PAIR_NUMBER, pechochar, pnoutrefresh, prefresh, printw, putwin, qiflush, raw, redrawwin, refresh, resetty, reset_prog_mode, reset_shell_mode, ripoffline, savetty, scanw, scr_dump, scr_init, scrl, scroll, scrollok, scr_restore, scr_set, setscrreg, set_term, slk_attroff, slk_attr_off, slk_attron, slk_attr_on, slk_attrset, slk_attr, slk_attr_set, slk_clear, slk_color, slk_init, slk_label, slk_noutrefresh, slk_refresh, slk_restore, slk_set, slk_touch, standout, standend, start_color, subpad, subwin, syncok, termattrs, termname, timeout, touchline, touchwin, typeahead, ungetch, untouchwin, use_env, use_tioctl, vidattr, vidputs, vline, vwprintw, vw_printw, vwscanw, vw_scanw, waddch, waddchnstr, waddchstr, waddnstr, waddstr, wattron, wattroff, wattrset, wattr_get, wattr_on, wattr_off, wattr_set, wbkgd, wbkgdset, wborder, wchgat, wclear, wclrtobot, wclrtoeol, wcolor_set, wcursyncup, wdelch, wdeleteln, wechochar, werase, wgetch, wgetnstr, wgetstr, whline, winch, winchnstr, winchstr, winnstr, winsch, winsdelln, winsertln, winsnstr, winsstr, winstr, wmove, wnoutrefresh, wprintw, wredrawln, wrefresh, wscanw, wscrl, wsetscrreg, wstandout, wstandend, wsyncdown, wsyncup, wtimeout, wtouchln, wvline"
+      MATH_FUNCTIONS: "acos, acosh, asin, asinh, atan, atan2, atanh, cbrt, ceil, copysign, cos, cosh, cospi, cyl_bessel_i0, cyl_bessel_i1, erf, erfc, erfcinv, erfcx, erfinv, exp, exp10, exp2, expm1, fabs, fdim, floor, fma, fmax, fmin, fmod, frexp, hypot, ilogb, j0, j1, jn, ldexp, lgamma, long, long, log, log10, log1p, log2, logb, lrint, lround, modf, nan, nearbyint, nextafter, norm, norm3d, norm4d, normcdf, normcdfinv, pow, powi, rcbrt, remainder, remquo, rhypot, rint, rnorm, rnorm3d, rnorm4d, round, rsqrt, scalbln, scalbn, sin, sincos, sincospi, sinh, sinpi, sqrt, tan, tanh, tgamma, trunc, y0, y1, yn"
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+
+      - name: Building Project
+        run: make
+        timeout-minutes: 2
+
+      - name: Running Banned Functions Check
+        shell: bash
+        run: |
+          # Checking mode
+          mode="${{ env.CHECK_BANNED_FUNCTIONS_MODE }}"
+          if [[ $mode != "allowed" ]] && [[ $mode != "banned" ]]; then
+              echo "Mode '$mode' is invalid. Please choose between 'allowed' and 'banned'."
+              echo "::error title=Invalid banned function mode::Mode '$mode' is invalid. Please choose between 'allowed' and 'banned'."
+              exit 1
+          fi
+
+          # Setting up the list of executables
+          executables_list=()
+          IFS=',' read -ra elements <<< " "${{ env.EXECUTABLES }}" "
+          for element in "${elements[@]}"; do
+              element=$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              if [[ ! -x "$element" ]]; then
+                  echo "Executable '$element' does not exist or is not executable."
+                  echo "::error file=${element},title=Executable does not exist or is not executable::Executable '$element' does not exist or is not executable."
+                  exit 1
+              fi
+              executables_list+=("$element")
+          done
+
+          # Setting up the list of allowed functions
+          allowed_functions_list=()
+          IFS=',' read -ra elements <<< "${{ env.ALLOWED_FUNCTIONS }}"
+          for element in "${elements[@]}"; do
+              element="$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')"
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              allowed_functions_list+=("$element")
+          done
+
+          # Setting up the list of banned functions
+          banned_functions_list=()
+          IFS=',' read -ra elements <<< "${{ env.BANNED_FUNCTIONS }}"
+          for element in "${elements[@]}"; do
+              element="$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')"
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              banned_functions_list+=("$element")
+          done
+
+          # Setting up the list of ncurses functions
+          ncurses_functions_list=()
+          IFS=',' read -ra elements <<< "${{ env.NCURSES_FUNCTIONS }}"
+          for element in "${elements[@]}"; do
+              element="$(echo "$element" | xargs)"
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              ncurses_functions_list+=("$element")
+          done
+
+          # Setting up the list of math functions
+          math_functions_list=()
+          IFS=',' read -ra elements <<< "${{ env.MATH_FUNCTIONS }}"
+          for element in "${elements[@]}"; do
+              element="$(echo "$element" | xargs)"
+              if [[ "$element" == "" ]]; then
+                  continue
+              fi
+              math_functions_list+=("$element")
+          done
+
+          # Function to check if a function is allowed
+          is_allowed() {
+              local function_name=$1
+              local source_name=$2
+              if [[ $mode == "allowed" ]]; then
+                  for allowed_function in "${allowed_functions_list[@]}"; do
+                      # echo "$allowed_function"
+                      if [[ "$function_name" == "$allowed_function" ]] || [[ "$source_name" == "$allowed_function" ]]; then
+                          return 1
+                      fi
+                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "ncurses" ]]; then
+                          for ncurses_function in "${ncurses_functions_list[@]}"; do
+                              if [ "$function_name" == "$ncurses_function" ]; then
+                                  return 1
+                              fi
+                          done
+                      fi
+                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "math" ]]; then
+                          for math_function in "${math_functions_list[@]}"; do
+                              if [ "$function_name" == "$math_function" ]; then
+                                  return 1
+                              fi
+                          done
+                      fi
+                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "csfml" ]] && [[ "$function_name" == sf* ]]; then
+                          return 1
+                      fi
+                  done
+                  return 0
+              elif [[ $mode == "banned" ]]; then
+                  for banned_function in "${banned_functions_list[@]}"; do
+                      if [[ "$function_name" == "$banned_function" ]] || [[ "$source_name" == "$banned_function" ]]; then
+                          return 0
+                      fi
+                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "ncurses" ]]; then
+                          for ncurses_function in "${ncurses_functions_list[@]}"; do
+                              if [ "$function_name" == "$ncurses_function" ]; then
+                                  return 0
+                              fi
+                          done
+                      fi
+                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "math" ]]; then
+                          for math_function in "${math_functions_list[@]}"; do
+                              if [ "$function_name" == "$math_function" ]; then
+                                  return 0
+                              fi
+                          done
+                      fi
+                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "csfml" ]] && [[ "$function_name" == sf* ]]; then
+                          return 0
+                      fi
+                  done
+                  return 1
+              fi
+          }
+
+          # Parsing executables
+          banned_function_detected=0
+          for executable in "${executables_list[@]}"; do
+              nm $executable -u | while IFS= read -r line; do
+                  info=$(echo "$line" | xargs | cut -d ' ' -f 2)
+                  function_name=$(echo "$info" | cut -d '@' -f 1)
+                  source=$(echo "$info" | cut -d '@' -f 2)
+                  source_name=$(echo "$source" | cut -d '_' -f 1 | tr '[:upper:]' '[:lower:]')
+                  source_version=$(echo "$source" | cut -d '_' -f 2)
+                  if [[ "$info" == "__gmon_start__" ]] || [[ "$function_name" == "__libc_start_main" ]]; then
+                      continue
+                  fi
+                  if is_allowed "$function_name" "$source_name" == 0; then
+                      echo "::error file=${executable},title=Banned function detected::'$function_name' is not allowed"
+                      banned_function_detected=1
+                  fi
+              done
+          done
+          if [[ $banned_function_detected == 1 ]]; then
+              exit 1
+          fi
+
+  repository_mirroring:
+    name: Repository Mirroring
+    runs-on: ubuntu-latest
+    needs: [check_coding_style, check_tests, check_memory_leaks, check_banned_functions]
+    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
+    steps:
+      - name: Checking Out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirroring
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ${{ env.MIRROR_URL }}
+          ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
