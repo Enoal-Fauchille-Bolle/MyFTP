@@ -37,18 +37,6 @@ static struct sockaddr_in init_sockin(int port)
     return addr;
 }
 
-static int set_socket_options(int sockfd)
-{
-    int opt = 1;
-
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) ==
-        -1) {
-        perror("setsockopt");
-        return -1;
-    }
-    return 0;
-}
-
 static int setup_socket_fd(void)
 {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -65,8 +53,6 @@ server_t setup_socket(int port)
     struct sockaddr_in addr = {0};
 
     if (sockfd == -1)
-        return (server_t){0};
-    if (set_socket_options(sockfd) == -1)
         return (server_t){0};
     addr = init_sockin(port);
     if (bind_socket(sockfd, &addr) == -1)

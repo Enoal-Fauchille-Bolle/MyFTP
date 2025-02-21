@@ -26,7 +26,7 @@ static char *read_socket(int sockfd)
     if (!buffer)
         return NULL;
     while (1) {
-        bytes = recv(sockfd, buffer + total, BUFFER_SIZE - 1, 0);
+        bytes = read(sockfd, buffer + total, BUFFER_SIZE - 1);
         if (bytes == -1)
             break;
         total += bytes;
