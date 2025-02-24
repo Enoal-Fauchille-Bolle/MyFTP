@@ -197,8 +197,6 @@ jobs:
       - name: Running Banned Functions Check
         shell: bash
         run: |
-          set -xeuo pipefail
-          trap 'echo "Erreur à la ligne $LINENO avec le code $?"' ERR
           # Checking mode
           mode="${{ env.CHECK_BANNED_FUNCTIONS_MODE }}"
           if [[ $mode != "allowed" ]] && [[ $mode != "banned" ]]; then
@@ -244,18 +242,17 @@ jobs:
           banned_functions_list=()
           IFS=',' read -ra elements <<< "${{ env.BANNED_FUNCTIONS }}"
           for element in "${elements[@]}"; do
-              element="$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')"
-              if [[ "$element" == "" ]]; then
-                  continue
+              element=$(echo "$element" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')
+              if [[ -n "$element" ]]; then
+                  banned_functions_list+=("$element")
               fi
-              banned_functions_list+=("$element")
           done
 
           # Setting up the list of ncurses functions
           ncurses_functions_list=()
           IFS=',' read -ra elements <<< "${{ env.NCURSES_FUNCTIONS }}"
           for element in "${elements[@]}"; do
-              element="$(echo "$element" | xargs)"
+              element=$(printf '%s' "$element" | xargs | tr '[:upper:]' '[:lower:]')
               if [[ "$element" == "" ]]; then
                   continue
               fi
@@ -266,7 +263,7 @@ jobs:
           math_functions_list=()
           IFS=',' read -ra elements <<< "${{ env.MATH_FUNCTIONS }}"
           for element in "${elements[@]}"; do
-              element="$(echo "$element" | xargs)"
+              element=$(printf '%s' "$element" | xargs | tr '[:upper:]' '[:lower:]')
               if [[ "$element" == "" ]]; then
                   continue
               fi
@@ -277,51 +274,74 @@ jobs:
           is_allowed() {
               local function_name=$1
               local source_name=$2
+
+              # Convert function name to lowercase for consistent comparison
+              local function_name_lower=$(echo "$function_name" | tr '[:upper:]' '[:lower:]')
+
               if [[ $mode == "allowed" ]]; then
                   for allowed_function in "${allowed_functions_list[@]}"; do
-                      # echo "$allowed_function"
-                      if [[ "$function_name" == "$allowed_function" ]] || [[ "$source_name" == "$allowed_function" ]]; then
+                      # Convert to lowercase for comparison
+                      local allowed_lower=$(echo "$allowed_function" | tr '[:upper:]' '[:lower:]')
+
+                      # Direct function name comparison
+                      if [ "$function_name_lower" = "$allowed_lower" ] || [ "$source_name" = "$allowed_lower" ]; then
                           return 1
                       fi
-                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "ncurses" ]]; then
+
+                      # NCurses functions check
+                      if [ "$allowed_lower" = "ncurses" ]; then
                           for ncurses_function in "${ncurses_functions_list[@]}"; do
-                              if [ "$function_name" == "$ncurses_function" ]; then
+                              if [ "$function_name_lower" = "$ncurses_function" ]; then
                                   return 1
                               fi
                           done
                       fi
-                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "math" ]]; then
+
+                      # Math functions check
+                      if [ "$allowed_lower" = "math" ]; then
                           for math_function in "${math_functions_list[@]}"; do
-                              if [ "$function_name" == "$math_function" ]; then
+                              if [ "$function_name_lower" = "$math_function" ]; then
                                   return 1
                               fi
                           done
                       fi
-                      if [[ $(echo "$allowed_function" | tr '[:upper:]' '[:lower:]') == "csfml" ]] && [[ "$function_name" == sf* ]]; then
+
+                      # CSFML functions check - using pattern matching
+                      if [ "$allowed_lower" = "csfml" ] && [[ "$function_name_lower" = sf* ]]; then
                           return 1
                       fi
                   done
                   return 0
               elif [[ $mode == "banned" ]]; then
                   for banned_function in "${banned_functions_list[@]}"; do
-                      if [[ "$function_name" == "$banned_function" ]] || [[ "$source_name" == "$banned_function" ]]; then
+                      # Convert to lowercase for comparison
+                      local banned_lower=$(echo "$banned_function" | tr '[:upper:]' '[:lower:]')
+
+                      # Direct function name comparison
+                      if [ "$function_name_lower" = "$banned_lower" ] || [ "$source_name" = "$banned_lower" ]; then
                           return 0
                       fi
-                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "ncurses" ]]; then
+
+                      # NCurses functions check
+                      if [ "$banned_lower" = "ncurses" ]; then
                           for ncurses_function in "${ncurses_functions_list[@]}"; do
-                              if [ "$function_name" == "$ncurses_function" ]; then
+                              if [ "$function_name_lower" = "$ncurses_function" ]; then
                                   return 0
                               fi
                           done
                       fi
-                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "math" ]]; then
+
+                      # Math functions check
+                      if [ "$banned_lower" = "math" ]; then
                           for math_function in "${math_functions_list[@]}"; do
-                              if [ "$function_name" == "$math_function" ]; then
+                              if [ "$function_name_lower" = "$math_function" ]; then
                                   return 0
                               fi
                           done
                       fi
-                      if [[ $(echo "$banned_function" | tr '[:upper:]' '[:lower:]') == "csfml" ]] && [[ "$function_name" == sf* ]]; then
+
+                      # CSFML functions check - using pattern matching
+                      if [ "$banned_lower" = "csfml" ] && [[ "$function_name_lower" = sf* ]]; then
                           return 0
                       fi
                   done
