@@ -203,6 +203,12 @@ jobs:
               exit 1
           fi
 
+          # Checking if nm is installed
+          if ! command -v nm >/dev/null 2>&1; then
+              echo "::error title=Missing dependency::nm is not installed."
+              exit 1
+          fi
+
           # Setting up the list of executables
           executables_list=()
           IFS=',' read -ra elements <<< " "${{ env.EXECUTABLES }}" "
