@@ -195,6 +195,8 @@ jobs:
       - name: Running Banned Functions Check
         shell: bash
         run: |
+          set -xeuo pipefail
+          trap 'echo "Erreur à la ligne $LINENO avec le code $?"' ERR
           # Checking mode
           mode="${{ env.CHECK_BANNED_FUNCTIONS_MODE }}"
           if [[ $mode != "allowed" ]] && [[ $mode != "banned" ]]; then
