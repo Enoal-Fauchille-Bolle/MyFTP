@@ -16,6 +16,8 @@ on:
 env:
   MIRROR_URL: "git@github.com:EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle.git"
   EXECUTABLES: "myftp"
+  ACTIONS_RUNNER_DEBUG: true
+  ACTIONS_STEP_DEBUG: true
 
   # Check Banned Functions
   CHECK_BANNED_FUNCTIONS_MODE: "banned"
