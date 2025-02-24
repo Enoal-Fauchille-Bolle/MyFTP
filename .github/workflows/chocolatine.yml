@@ -211,7 +211,7 @@ jobs:
 
           # Setting up the list of executables
           executables_list=()
-          IFS=',' read -ra elements <<< " "${{ env.EXECUTABLES }}" "
+          IFS=',' read -ra elements <<< "${{ env.EXECUTABLES }}"
           for element in "${elements[@]}"; do
               element=$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')
               if [[ "$element" == "" ]]; then
