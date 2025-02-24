@@ -361,8 +361,8 @@ jobs:
                   if [[ "$info" == "__gmon_start__" ]] || [[ "$function_name" == "__libc_start_main" ]]; then
                       continue
                   fi
-                  is_allowed "$function_name" "$source_name"
-                  if [[ $? == 0 ]]; then
+                  result=$(is_allowed "$function_name" "$source_name") || true
+                  if [[ result == 0 ]]; then
                       banned_function_detected=1
                       echo "::error file=${executable},title=Banned function detected::'$function_name' is not allowed"
                   fi
