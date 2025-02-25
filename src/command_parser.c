@@ -7,7 +7,7 @@
 
 #include "myftp.h"
 
-int count_args(char *buffer)
+static int count_args(char *buffer)
 {
     int count = 0;
 
@@ -31,12 +31,13 @@ command_t parse_buffer(char *buffer)
     }
     command.argc = token_count - 1;
     for (int i = 0; token != NULL; i++) {
-        tokens[i] = token;
+        tokens[i] = strdup(token);
         token = strtok(NULL, " ");
     }
     tokens[token_count - 1][strlen(tokens[token_count - 1]) - 1] = '\0';
     tokens[token_count] = NULL;
     command.name = tokens[0];
     command.argv = tokens + 1;
+    // free(tokens);
     return command;
 }

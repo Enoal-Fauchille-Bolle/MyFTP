@@ -7,14 +7,14 @@
 
 #include "myftp.h"
 
-void help_page(void)
+static void help_page(void)
 {
     puts("USAGE: ./myftp port path");
     puts("\tport is the port number on which the server socket listens");
     puts("\tpath is the path to the home directory for the Anonymous user");
 }
 
-int check_path(char *path)
+static int check_path(char *path)
 {
     if (path == NULL)
         return 84;
@@ -24,7 +24,7 @@ int check_path(char *path)
     return 0;
 }
 
-int myftp(int port, char *path)
+static int myftp(int port, char *path)
 {
     server_t server = {0};
 

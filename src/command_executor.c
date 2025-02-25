@@ -14,7 +14,7 @@ const command_handler_t command_handlers[] = {{"USER", user_command},
     {"NOOP", noop_command}, {"RETR", retr_command}, {"STOR", stor_command},
     {"LIST", list_command}, {NULL, NULL}};
 
-command_handler_t get_command_handler(command_t *command)
+static command_handler_t get_command_handler(command_t *command)
 {
     touppercase(command->name);
     for (int i = 0; command_handlers[i].command_name; i++) {
@@ -30,8 +30,14 @@ command_status_t execute_command(command_t *command, connection_t *connection)
     command_handler_t handler = get_command_handler(command);
 
     if (!handler.handler) {
-        dprintf(2, "Unknown command: '%s'\n", command->name);
+        if (connection->logged_in) {
+            dprintf(connection->client_sockfd, "500 Unknown command.\r\n");
+        } else {
+            dprintf(connection->client_sockfd,
+                "530 Please login with USER and PASS.\r\n");
+        }
         return COMMAND_NOT_FOUND;
     }
+    // printf("Executing command: %s\n", command->name);
     return handler.handler(command, connection);
 }

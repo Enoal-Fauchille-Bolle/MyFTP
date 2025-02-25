@@ -7,32 +7,46 @@
 
 #include "myftp.h"
 
+static connection_t init_connection(
+    server_t *server, int client_sockfd, struct sockaddr_in *client_addr)
+{
+    connection_t connection = {0};
+
+    connection.server = server;
+    connection.client_sockfd = client_sockfd;
+    connection.client_addr = client_addr;
+    connection.logged_in = false;
+    connection.user = NULL;
+    connection.working_directory = strdup(server->path);
+    return connection;
+}
+
 // Initializes the pollfd array with the listening socket.
-static void init_poll_fds(struct pollfd *fds, int sockfd)
+static void init_poll_fds(struct pollfd *fds, int server_sockfd)
 {
     for (int i = 0; i < MAX_CLIENTS + 1; i++) {
         fds[i].fd = -1;
     }
-    fds[0].fd = sockfd;
+    fds[0].fd = server_sockfd;
     fds[0].events = POLLIN;
 }
 
 // Accepts a new client connection and adds it to the pollfd array.
-static void accept_new_connection(int sockfd, struct pollfd *fds, int max_fds)
+static void accept_new_connection(server_t *server, connection_t *connections,
+    struct pollfd *fds, int max_fds)
 {
-    struct sockaddr_in client_addr;
+    struct sockaddr_in client_addr = {0};
     socklen_t client_addr_len = sizeof(client_addr);
-    int client_fd =
-        accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len);
+    int client_fd = accept(server->server_sockfd,
+        (struct sockaddr *)&client_addr, &client_addr_len);
 
-    if (client_fd == -1) {
-        perror("accept");
-        return;
-    }
+    if (client_fd == -1)
+        return perror("accept");
     printf("Connection from %s:%d\n", inet_ntoa(client_addr.sin_addr),
         ntohs(client_addr.sin_port));
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0) {
+            connections[i] = init_connection(server, client_fd, &client_addr);
             fds[i].fd = client_fd;
             fds[i].events = POLLOUT;
             break;
@@ -42,13 +56,13 @@ static void accept_new_connection(int sockfd, struct pollfd *fds, int max_fds)
 
 // Processes client events: for each ready client, handle the connection.
 static void process_client_events(
-    struct pollfd *fds, int max_fds, server_t *server)
+    struct pollfd *fds, int max_fds, connection_t *connections)
 {
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0)
             continue;
         if (fds[i].revents & POLLOUT) {
-            handle_connection(fds[i].fd, server);
+            handle_connection(fds[i].fd, &connections[i]);
             close(fds[i].fd);
             fds[i].fd = -1;
         }
@@ -59,6 +73,7 @@ static void process_client_events(
 int process_connections(server_t *server)
 {
     struct pollfd fds[MAX_CLIENTS + 1];
+    connection_t connections[MAX_CLIENTS + 1];
     int ret = 0;
 
     init_poll_fds(fds, server->server_sockfd);
@@ -69,9 +84,9 @@ int process_connections(server_t *server)
             break;
         }
         if (fds[0].revents & POLLIN) {
-            accept_new_connection(server->server_sockfd, fds, MAX_CLIENTS + 1);
+            accept_new_connection(server, connections, fds, MAX_CLIENTS + 1);
         }
-        process_client_events(fds, MAX_CLIENTS + 1, server);
+        process_client_events(fds, MAX_CLIENTS + 1, connections);
     }
     return 0;
 }

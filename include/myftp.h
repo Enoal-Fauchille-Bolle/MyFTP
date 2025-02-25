@@ -24,15 +24,18 @@
 
 typedef struct server_s {
     int server_sockfd;
-    struct sockaddr_in addr;
+    struct sockaddr_in server_addr;
     int port;
     char *path;
 } server_t;
 
 typedef struct connection_s {
-    int client_sockfd;
-    bool logged_in;
     server_t *server;
+    int client_sockfd;
+    struct sockaddr_in *client_addr;
+    bool logged_in;
+    char *user;
+    char *working_directory;
 } connection_t;
 
 typedef struct command_s {
@@ -54,7 +57,7 @@ typedef struct command_handler_s {
 } command_handler_t;
 
 // Client Handler
-int handle_connection(int sockfd, server_t *server);
+int handle_connection(int client_sockfd, connection_t *connection);
 
 // Socket
 server_t setup_socket(int port, char *path);
