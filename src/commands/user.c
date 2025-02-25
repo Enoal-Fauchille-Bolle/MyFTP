@@ -7,12 +7,9 @@
 
 #include "myftp.h"
 
-command_status_t user_command(command_t *command, server_t *server)
+command_status_t user_command(command_t *command, connection_t *connection)
 {
-    (void)server;
-    printf("Command: %s\n", command->name);
-    for (int i = 0; i < command->argc; i++) {
-        printf("Arg %d: %s\n", i, command->argv[i]);
-    }
-    return 0;
+    (void)command;
+    (void)connection;
+    return COMMAND_SUCCESS;
 }

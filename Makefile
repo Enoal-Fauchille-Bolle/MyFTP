@@ -17,7 +17,19 @@ SRC	=	\
 		$(SRC_DIR)/command_executor.c	\
 		$(SRC_DIR)/utils.c	\
 		$(SRC_DIR)/commands/user.c	\
+		$(SRC_DIR)/commands/pass.c	\
+		$(SRC_DIR)/commands/cwd.c	\
+		$(SRC_DIR)/commands/cdup.c	\
 		$(SRC_DIR)/commands/quit.c	\
+		$(SRC_DIR)/commands/dele.c	\
+		$(SRC_DIR)/commands/pwd.c	\
+		$(SRC_DIR)/commands/pasv.c	\
+		$(SRC_DIR)/commands/port.c	\
+		$(SRC_DIR)/commands/help.c	\
+		$(SRC_DIR)/commands/noop.c	\
+		$(SRC_DIR)/commands/retr.c	\
+		$(SRC_DIR)/commands/stor.c	\
+		$(SRC_DIR)/commands/list.c	\
 
 NAME	=	myftp
 

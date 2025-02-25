@@ -7,9 +7,9 @@
 
 #include "myftp.h"
 
-command_status_t quit_command(command_t *command, connection_t *connection)
+command_status_t retr_command(command_t *command, connection_t *connection)
 {
     (void)command;
     (void)connection;
-    return COMMAND_QUIT;
+    return COMMAND_SUCCESS;
 }

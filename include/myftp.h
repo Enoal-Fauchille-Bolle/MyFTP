@@ -72,7 +72,19 @@ command_status_t execute_command(command_t *command, connection_t *connection);
 char *touppercase(char *str);
 
 // Commands
-command_status_t user_command(command_t *command, server_t *server);
-command_status_t quit_command(command_t *command, server_t *server);
+command_status_t user_command(command_t *command, connection_t *connection);
+command_status_t pass_command(command_t *command, connection_t *connection);
+command_status_t cwd_command(command_t *command, connection_t *connection);
+command_status_t cdup_command(command_t *command, connection_t *connection);
+command_status_t quit_command(command_t *command, connection_t *connection);
+command_status_t dele_command(command_t *command, connection_t *connection);
+command_status_t pwd_command(command_t *command, connection_t *connection);
+command_status_t pasv_command(command_t *command, connection_t *connection);
+command_status_t port_command(command_t *command, connection_t *connection);
+command_status_t help_command(command_t *command, connection_t *connection);
+command_status_t noop_command(command_t *command, connection_t *connection);
+command_status_t retr_command(command_t *command, connection_t *connection);
+command_status_t stor_command(command_t *command, connection_t *connection);
+command_status_t list_command(command_t *command, connection_t *connection);
 
 #endif /* !MYFTP_H_ */
