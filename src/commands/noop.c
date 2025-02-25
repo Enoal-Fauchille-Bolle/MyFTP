@@ -10,6 +10,11 @@
 command_status_t noop_command(command_t *command, connection_t *connection)
 {
     (void)command;
-    (void)connection;
+    if (!connection->logged_in) {
+        dprintf(connection->client_sockfd,
+            "530 Please login with USER and PASS.\r\n");
+        return COMMAND_FAILURE;
+    }
+    dprintf(connection->client_sockfd, "200 NOOP ok.\r\n");
     return COMMAND_SUCCESS;
 }

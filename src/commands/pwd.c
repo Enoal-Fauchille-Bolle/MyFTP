@@ -10,6 +10,10 @@
 command_status_t pwd_command(command_t *command, connection_t *connection)
 {
     (void)command;
-    (void)connection;
+    if (!connection->logged_in) {
+        dprintf(connection->client_sockfd,
+            "530 Please login with USER and PASS.\r\n");
+        return COMMAND_FAILURE;
+    }
     return COMMAND_SUCCESS;
 }
