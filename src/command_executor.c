@@ -38,6 +38,5 @@ command_status_t execute_command(command_t *command, connection_t *connection)
         }
         return COMMAND_NOT_FOUND;
     }
-    // printf("Executing command: %s\n", command->name);
     return handler.handler(command, connection);
 }

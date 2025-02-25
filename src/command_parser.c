@@ -38,6 +38,5 @@ command_t parse_buffer(char *buffer)
     tokens[token_count] = NULL;
     command.name = tokens[0];
     command.argv = tokens + 1;
-    // free(tokens);
     return command;
 }
