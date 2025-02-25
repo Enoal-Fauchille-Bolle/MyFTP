@@ -28,12 +28,12 @@ int myftp(int port, char *path)
 {
     server_t server = {0};
 
-    server = setup_socket(port);
+    server = setup_socket(port, path);
     if (server.sockfd == 0)
         return 84;
     printf("Listening on port %d\n", port);
     printf("Home directory: %s\n", path);
-    return connection_loop(server.sockfd);
+    return connection_loop(&server);
     return 0;
 }
 

@@ -41,13 +41,14 @@ static void accept_new_connection(int sockfd, struct pollfd *fds, int max_fds)
 }
 
 // Processes client events: for each ready client, handle the connection.
-static void process_client_events(struct pollfd *fds, int max_fds)
+static void process_client_events(
+    struct pollfd *fds, int max_fds, server_t *server)
 {
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0)
             continue;
         if (fds[i].revents & POLLOUT) {
-            handle_connection(fds[i].fd);
+            handle_connection(fds[i].fd, server);
             close(fds[i].fd);
             fds[i].fd = -1;
         }
@@ -55,12 +56,12 @@ static void process_client_events(struct pollfd *fds, int max_fds)
 }
 
 // Main connection loop.
-int connection_loop(int sockfd)
+int connection_loop(server_t *server)
 {
     struct pollfd fds[MAX_CLIENTS + 1];
     int ret = 0;
 
-    init_poll_fds(fds, sockfd);
+    init_poll_fds(fds, server->sockfd);
     while (1) {
         ret = poll(fds, MAX_CLIENTS + 1, POLL_TIMEOUT);
         if (ret < 0) {
@@ -68,9 +69,9 @@ int connection_loop(int sockfd)
             break;
         }
         if (fds[0].revents & POLLIN) {
-            accept_new_connection(sockfd, fds, MAX_CLIENTS + 1);
+            accept_new_connection(server->sockfd, fds, MAX_CLIENTS + 1);
         }
-        process_client_events(fds, MAX_CLIENTS + 1);
+        process_client_events(fds, MAX_CLIENTS + 1, server);
     }
     return 0;
 }

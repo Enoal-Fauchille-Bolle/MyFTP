@@ -7,51 +7,48 @@
 
 #include "myftp.h"
 
-static char *resize_buffer(char *buffer, size_t *size)
-{
-    char *new_buffer = NULL;
-
-    *size *= 2;
-    new_buffer = realloc(buffer, *size);
-    return new_buffer ? new_buffer : (free(buffer), NULL);
-}
-
 static char *read_socket(int sockfd)
 {
-    size_t size = BUFFER_SIZE;
-    size_t total = 0;
-    char *buffer = malloc(size);
-    int bytes;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    FILE *fp = fdopen(sockfd, "r");
 
-    if (!buffer)
+    if (fp == NULL) {
+        perror("fdopen");
         return NULL;
-    while (1) {
-        bytes = read(sockfd, buffer + total, BUFFER_SIZE - 1);
-        if (bytes == -1)
-            break;
-        total += bytes;
-        buffer[total] = '\0';
-        if (bytes < BUFFER_SIZE - 1)
-            break;
-        buffer = resize_buffer(buffer, &size);
-        if (!buffer)
-            return NULL;
     }
-    return (bytes < 0) ? (free(buffer), NULL) : buffer;
+    read = getline(&line, &len, fp);
+    if (read == -1) {
+        free(line);
+        fclose(fp);
+        return NULL;
+    }
+    if (line[read - 1] == '\n')
+        line[read - 1] = '\0';
+    return line;
 }
 
-int handle_connection(int sockfd)
+int handle_connection(int sockfd, server_t *server)
 {
     char *buffer = NULL;
+    command_t command;
+    command_status_t result;
 
     dprintf(sockfd, "220 Service ready for new user.\r\n");
     while (1) {
         buffer = read_socket(sockfd);
         printf("Received: %s", buffer);
+        command = parse_buffer(buffer);
+        result = execute_command(&command, server);
         if (buffer)
             free(buffer);
         else
             break;
+        if (result == COMMAND_QUIT) {
+            dprintf(sockfd, "221 Service closing control connection.\r\n");
+            break;
+        }
     }
     return 0;
 }

@@ -24,10 +24,48 @@
 typedef struct server_s {
     int sockfd;
     struct sockaddr_in addr;
+    int port;
+    char *path;
 } server_t;
 
-int handle_connection(int sockfd);
-server_t setup_socket(int port);
-int connection_loop(int sockfd);
+typedef struct command_s {
+    char *name;
+    int argc;
+    char **argv;
+} command_t;
+
+typedef enum command_status {
+    COMMAND_SUCCESS,
+    COMMAND_FAILURE,
+    COMMAND_NOT_FOUND,
+    COMMAND_QUIT
+} command_status_t;
+
+typedef struct command_handler_s {
+    char *command_name;
+    command_status_t (*handler)(command_t *command, server_t *server);
+} command_handler_t;
+
+// Client Handler
+int handle_connection(int sockfd, server_t *server);
+
+// Socket
+server_t setup_socket(int port, char *path);
+
+// Connection
+int connection_loop(server_t *server);
+
+// Command Parser
+command_t parse_buffer(char *buffer);
+
+// Command Executor
+command_status_t execute_command(command_t *command, server_t *server);
+
+// Utils
+char *touppercase(char *str);
+
+// Commands
+command_status_t user_command(command_t *command, server_t *server);
+command_status_t quit_command(command_t *command, server_t *server);
 
 #endif /* !MYFTP_H_ */

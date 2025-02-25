@@ -47,7 +47,7 @@ static int setup_socket_fd(void)
     return sockfd;
 }
 
-server_t setup_socket(int port)
+server_t setup_socket(int port, char *path)
 {
     int sockfd = setup_socket_fd();
     struct sockaddr_in addr = {0};
@@ -59,5 +59,5 @@ server_t setup_socket(int port)
         return (server_t){0};
     if (listen_socket(sockfd) == -1)
         return (server_t){0};
-    return (server_t){sockfd, addr};
+    return (server_t){sockfd, addr, port, path};
 }

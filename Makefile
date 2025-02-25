@@ -7,11 +7,17 @@
 
 .PHONY: all clean fclean re tests_run unit_tests
 
+SRC_DIR =	src
 SRC	=	\
-		src/main.c	\
-		src/connection.c	\
-		src/client_handler.c	\
-		src/socket.c	\
+		$(SRC_DIR)/main.c	\
+		$(SRC_DIR)/connection.c	\
+		$(SRC_DIR)/client_handler.c	\
+		$(SRC_DIR)/socket.c	\
+		$(SRC_DIR)/command_parser.c	\
+		$(SRC_DIR)/command_executor.c	\
+		$(SRC_DIR)/utils.c	\
+		$(SRC_DIR)/commands/user.c	\
+		$(SRC_DIR)/commands/quit.c	\
 
 NAME	=	myftp
 
