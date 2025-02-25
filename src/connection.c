@@ -56,12 +56,12 @@ static void process_client_events(
 }
 
 // Main connection loop.
-int connection_loop(server_t *server)
+int process_connections(server_t *server)
 {
     struct pollfd fds[MAX_CLIENTS + 1];
     int ret = 0;
 
-    init_poll_fds(fds, server->sockfd);
+    init_poll_fds(fds, server->server_sockfd);
     while (1) {
         ret = poll(fds, MAX_CLIENTS + 1, POLL_TIMEOUT);
         if (ret < 0) {
@@ -69,7 +69,7 @@ int connection_loop(server_t *server)
             break;
         }
         if (fds[0].revents & POLLIN) {
-            accept_new_connection(server->sockfd, fds, MAX_CLIENTS + 1);
+            accept_new_connection(server->server_sockfd, fds, MAX_CLIENTS + 1);
         }
         process_client_events(fds, MAX_CLIENTS + 1, server);
     }

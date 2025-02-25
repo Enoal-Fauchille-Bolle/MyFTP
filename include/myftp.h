@@ -20,13 +20,20 @@
     #include <sys/socket.h>
     #include <unistd.h>
     #include <string.h>
+    #include <stdbool.h>
 
 typedef struct server_s {
-    int sockfd;
+    int server_sockfd;
     struct sockaddr_in addr;
     int port;
     char *path;
 } server_t;
+
+typedef struct connection_s {
+    int client_sockfd;
+    bool logged_in;
+    server_t *server;
+} connection_t;
 
 typedef struct command_s {
     char *name;
@@ -43,7 +50,7 @@ typedef enum command_status {
 
 typedef struct command_handler_s {
     char *command_name;
-    command_status_t (*handler)(command_t *command, server_t *server);
+    command_status_t (*handler)(command_t *command, connection_t *connection);
 } command_handler_t;
 
 // Client Handler
@@ -53,13 +60,13 @@ int handle_connection(int sockfd, server_t *server);
 server_t setup_socket(int port, char *path);
 
 // Connection
-int connection_loop(server_t *server);
+int process_connections(server_t *server);
 
 // Command Parser
 command_t parse_buffer(char *buffer);
 
 // Command Executor
-command_status_t execute_command(command_t *command, server_t *server);
+command_status_t execute_command(command_t *command, connection_t *connection);
 
 // Utils
 char *touppercase(char *str);

@@ -29,24 +29,37 @@ static char *read_socket(int sockfd)
     return line;
 }
 
-int handle_connection(int sockfd, server_t *server)
+int handle_client_command(connection_t *connection)
 {
+    command_status_t result;
     char *buffer = NULL;
     command_t command;
-    command_status_t result;
 
-    dprintf(sockfd, "220 Service ready for new user.\r\n");
+    buffer = read_socket(connection->client_sockfd);
+    if (!buffer)
+        return 1;
+    command = parse_buffer(buffer);
+    result = execute_command(&command, connection);
+    if (buffer)
+        free(buffer);
+    else
+        return 1;
+    if (result == COMMAND_QUIT)
+        return 1;
+    return 0;
+}
+
+int handle_connection(int client_sockfd, server_t *server)
+{
+    int result = 0;
+    connection_t connection = {client_sockfd, false, server};
+
+    dprintf(client_sockfd, "220 Service ready for new user.\r\n");
     while (1) {
-        buffer = read_socket(sockfd);
-        printf("Received: %s", buffer);
-        command = parse_buffer(buffer);
-        result = execute_command(&command, server);
-        if (buffer)
-            free(buffer);
-        else
-            break;
-        if (result == COMMAND_QUIT) {
-            dprintf(sockfd, "221 Service closing control connection.\r\n");
+        result = handle_client_command(&connection);
+        if (result) {
+            dprintf(
+                client_sockfd, "221 Service closing control connection.\r\n");
             break;
         }
     }
