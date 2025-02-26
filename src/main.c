@@ -34,7 +34,6 @@ static int myftp(int port, char *path)
     printf("Listening on port %d\n", port);
     printf("Home directory: %s\n", path);
     return process_connections(&server);
-    return 0;
 }
 
 int main(int ac, char **av)
