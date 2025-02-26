@@ -21,6 +21,7 @@
     #include <unistd.h>
     #include <string.h>
     #include <stdbool.h>
+    #include <dirent.h>
 
 typedef struct server_s {
     int server_sockfd;

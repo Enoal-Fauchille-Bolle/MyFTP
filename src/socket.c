@@ -47,10 +47,11 @@ static int setup_socket_fd(void)
     return server_sockfd;
 }
 
-server_t setup_socket(int port, char *path)
+server_t setup_socket(int port, char *raw_path)
 {
     int server_sockfd = setup_socket_fd();
     struct sockaddr_in server_addr = {0};
+    char *path = NULL;
 
     if (server_sockfd == -1)
         return (server_t){0};
@@ -58,6 +59,10 @@ server_t setup_socket(int port, char *path)
     if (bind_socket(server_sockfd, &server_addr) == -1)
         return (server_t){0};
     if (listen_socket(server_sockfd) == -1)
+        return (server_t){0};
+    chdir(raw_path);
+    path = getcwd(NULL, 0);
+    if (path == NULL)
         return (server_t){0};
     return (server_t){server_sockfd, server_addr, port, path};
 }
