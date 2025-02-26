@@ -30,7 +30,7 @@ static command_status_t check_preconditions(connection_t *connection)
 
 static command_status_t process_login(connection_t *connection, char *password)
 {
-    if (strcmp(connection->user, "anonymous") == 0 &&
+    if (strcmp(connection->user, "Anonymous") == 0 &&
         strcmp(password, "") == 0) {
         dprintf(connection->client_sockfd, "230 Login successful.\r\n");
         connection->logged_in = true;
