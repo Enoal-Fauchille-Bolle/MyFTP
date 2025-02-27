@@ -15,5 +15,6 @@ command_status_t stor_command(command_t *command, connection_t *connection)
             "530 Please login with USER and PASS.\r\n");
         return COMMAND_FAILURE;
     }
+    dprintf(connection->client_sockfd, "502 Command not implemented.\r\n");
     return COMMAND_SUCCESS;
 }
