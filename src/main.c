@@ -6,6 +6,7 @@
 */
 
 #include "myftp.h"
+#include <signal.h>
 
 static void help_page(void)
 {
@@ -36,6 +37,23 @@ static int myftp(int port, char *path)
     return process_connections(&server);
 }
 
+static void handle_signal(int sig)
+{
+    (void)sig;
+    printf("\nStopping FTP server...\n");
+}
+
+static void setup_signal(void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = handle_signal;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+}
+
 int main(int ac, char **av)
 {
     int port = 0;
@@ -54,6 +72,7 @@ int main(int ac, char **av)
         puts("Error: Invalid path");
         return 84;
     }
+    setup_signal();
     myftp(port, path);
     return 0;
 }

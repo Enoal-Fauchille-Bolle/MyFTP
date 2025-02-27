@@ -34,6 +34,7 @@ typedef struct connection_s {
     server_t *server;
     int client_sockfd;
     struct sockaddr_in *client_addr;
+    FILE *stream;
     bool logged_in;
     char *user;
     char *working_directory;
@@ -49,7 +50,7 @@ typedef enum command_status {
     COMMAND_SUCCESS,
     COMMAND_FAILURE,
     COMMAND_NOT_FOUND,
-    COMMAND_QUIT
+    COMMAND_QUIT,
 } command_status_t;
 
 typedef struct command_handler_s {
@@ -58,7 +59,7 @@ typedef struct command_handler_s {
 } command_handler_t;
 
 // Client Handler
-int handle_connection(int client_sockfd, connection_t *connection);
+void handle_connection(struct pollfd *fd, connection_t *connection);
 
 // Socket
 server_t setup_socket(int port, char *path);
@@ -74,6 +75,12 @@ command_status_t execute_command(command_t *command, connection_t *connection);
 
 // Utils
 char *touppercase(char *str);
+
+// Destroyers
+void destroy_connection(connection_t *connection);
+void destroy_command(command_t *command);
+void destroy_server(
+    server_t *server, struct pollfd *fds, connection_t *connections);
 
 // Commands
 command_status_t user_command(command_t *command, connection_t *connection);

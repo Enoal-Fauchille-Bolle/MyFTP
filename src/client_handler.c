@@ -7,29 +7,15 @@
 
 #include "myftp.h"
 
-static void destroy_command(command_t *command)
-{
-    free(command->name);
-    for (int i = 0; i < command->argc && command->argv[i]; i++) {
-        free(command->argv[i]);
-    }
-}
-
-static char *read_socket(int client_sockfd)
+static char *read_socket(connection_t *connection)
 {
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
-    FILE *fp = fdopen(client_sockfd, "r");
 
-    if (fp == NULL) {
-        perror("fdopen");
-        return NULL;
-    }
-    read = getline(&line, &len, fp);
+    read = getline(&line, &len, connection->stream);
     if (read == -1) {
         free(line);
-        fclose(fp);
         return NULL;
     }
     if (line[read - 1] == '\n')
@@ -37,47 +23,36 @@ static char *read_socket(int client_sockfd)
     return line;
 }
 
-static int handle_client_command(connection_t *connection)
+static command_status_t handle_client_command(connection_t *connection)
 {
-    command_status_t result;
+    command_status_t result = COMMAND_NOT_FOUND;
     char *buffer = NULL;
-    command_t command;
+    command_t command = {0};
 
-    buffer = read_socket(connection->client_sockfd);
+    buffer = read_socket(connection);
     if (!buffer)
         return 1;
-    printf("Executing command: %s\n", buffer);
+    printf("Command from %s:%d: %s\n",
+        inet_ntoa(connection->client_addr->sin_addr),
+        ntohs(connection->client_addr->sin_port), buffer);
     command = parse_buffer(buffer);
     result = execute_command(&command, connection);
     destroy_command(&command);
     free(buffer);
-    if (result == COMMAND_QUIT)
-        return 1;
-    return 0;
+    return result;
 }
 
-static void destroy_connection(connection_t *connection)
+void handle_connection(struct pollfd *fd, connection_t *connection)
 {
-    free(connection->user);
-    free(connection->working_directory);
-}
+    command_status_t result = handle_client_command(connection);
 
-int handle_connection(int client_sockfd, connection_t *connection)
-{
-    int result = 0;
-
-    dprintf(client_sockfd, "220 Service ready for new user.\r\n");
-    while (1) {
-        result = handle_client_command(connection);
-        if (result) {
-            dprintf(
-                client_sockfd, "221 Service closing control connection.\r\n");
-            break;
-        }
+    if (result == COMMAND_QUIT) {
+        dprintf(fd->fd, "221 Service closing control connection.\r\n");
+        printf("Disconnected %s:%d\n",
+            inet_ntoa(connection->client_addr->sin_addr),
+            ntohs(connection->client_addr->sin_port));
+        destroy_connection(connection);
+        close(fd->fd);
+        fd->fd = -1;
     }
-    printf("Disconnected %s:%d\n",
-        inet_ntoa(connection->client_addr->sin_addr),
-        ntohs(connection->client_addr->sin_port));
-    destroy_connection(connection);
-    return 0;
 }

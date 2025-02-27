@@ -5,6 +5,8 @@
 ** Connection File
 */
 
+#include <errno.h>
+
 #include "myftp.h"
 
 static connection_t init_connection(
@@ -14,7 +16,17 @@ static connection_t init_connection(
 
     connection.server = server;
     connection.client_sockfd = client_sockfd;
-    connection.client_addr = client_addr;
+    connection.client_addr = malloc(sizeof(struct sockaddr_in));
+    if (connection.client_addr != NULL)
+        memcpy(
+            connection.client_addr, client_addr, sizeof(struct sockaddr_in));
+    connection.stream = fdopen(client_sockfd, "r");
+    if (connection.stream == NULL) {
+        perror("fdopen");
+        close(client_sockfd);
+        connection = (connection_t){0};
+        return connection;
+    }
     connection.logged_in = false;
     connection.user = NULL;
     connection.working_directory = strdup(server->path);
@@ -37,18 +49,20 @@ static void accept_new_connection(server_t *server, connection_t *connections,
 {
     struct sockaddr_in client_addr = {0};
     socklen_t client_addr_len = sizeof(client_addr);
-    int client_fd = accept(server->server_sockfd,
+    int client_sockfd = accept(server->server_sockfd,
         (struct sockaddr *)&client_addr, &client_addr_len);
 
-    if (client_fd == -1)
+    if (client_sockfd == -1)
         return perror("accept");
     printf("Connection from %s:%d\n", inet_ntoa(client_addr.sin_addr),
         ntohs(client_addr.sin_port));
+    dprintf(client_sockfd, "220 Service ready for new user.\r\n");
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0) {
-            connections[i] = init_connection(server, client_fd, &client_addr);
-            fds[i].fd = client_fd;
-            fds[i].events = POLLOUT;
+            connections[i] =
+                init_connection(server, client_sockfd, &client_addr);
+            fds[i].fd = client_sockfd;
+            fds[i].events = POLLIN;
             break;
         }
     }
@@ -61,12 +75,27 @@ static void process_client_events(
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0)
             continue;
-        if (fds[i].revents & POLLOUT) {
-            handle_connection(fds[i].fd, &connections[i]);
-            close(fds[i].fd);
-            fds[i].fd = -1;
+        if (fds[i].revents & POLLIN) {
+            handle_connection(&fds[i], &connections[i]);
         }
     }
+}
+
+static int process_connection(
+    server_t *server, struct pollfd *fds, connection_t *connections)
+{
+    int result = poll(fds, MAX_CLIENTS + 1, POLL_TIMEOUT);
+
+    if (result < 0) {
+        if (errno != EINTR)
+            perror("poll");
+        return 1;
+    }
+    if (fds[0].revents & POLLIN) {
+        accept_new_connection(server, connections, fds, MAX_CLIENTS + 1);
+    }
+    process_client_events(fds, MAX_CLIENTS + 1, connections);
+    return 0;
 }
 
 // Main connection loop.
@@ -74,19 +103,12 @@ int process_connections(server_t *server)
 {
     struct pollfd fds[MAX_CLIENTS + 1];
     connection_t connections[MAX_CLIENTS + 1];
-    int ret = 0;
 
     init_poll_fds(fds, server->server_sockfd);
     while (1) {
-        ret = poll(fds, MAX_CLIENTS + 1, POLL_TIMEOUT);
-        if (ret < 0) {
-            perror("poll");
+        if (process_connection(server, fds, connections))
             break;
-        }
-        if (fds[0].revents & POLLIN) {
-            accept_new_connection(server, connections, fds, MAX_CLIENTS + 1);
-        }
-        process_client_events(fds, MAX_CLIENTS + 1, connections);
     }
+    destroy_server(server, fds, connections);
     return 0;
 }
