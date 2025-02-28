@@ -41,7 +41,9 @@ static int execute_ls_command(char *cmd, connection_t *connection)
     FILE *fp = popen(cmd, "r");
     char buffer[1024];
 
+    free(cmd);
     if (fp == NULL) {
+        perror("popen");
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
         return -1;
