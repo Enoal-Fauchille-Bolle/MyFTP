@@ -90,6 +90,5 @@ command_status_t list_command(command_t *command, connection_t *connection)
         dprintf(connection->client_sockfd, "425 Use PASV or PORT first.\r\n");
         return COMMAND_FAILURE;
     }
-    dprintf(connection->client_sockfd, "502 Command not implemented.\r\n");
     return list(connection);
 }
