@@ -24,11 +24,17 @@
     #include <dirent.h>
 
 typedef struct server_s {
-    int server_sockfd;
-    struct sockaddr_in server_addr;
+    int sockfd;
+    struct sockaddr_in addr;
     int port;
     char *path;
 } server_t;
+
+typedef struct data_socket_s {
+    int sockfd;
+    struct sockaddr_in addr;
+    int port;
+} data_socket_t;
 
 typedef struct connection_s {
     server_t *server;
@@ -38,6 +44,7 @@ typedef struct connection_s {
     bool logged_in;
     char *user;
     char *working_directory;
+    data_socket_t *data_socket;
 } connection_t;
 
 typedef struct command_s {
@@ -58,6 +65,7 @@ typedef struct command_handler_s {
     command_status_t (*handler)(command_t *command, connection_t *connection);
 } command_handler_t;
 
+
 // Client Handler
 void handle_connection(struct pollfd *fd, connection_t *connection);
 
@@ -75,12 +83,18 @@ command_status_t execute_command(command_t *command, connection_t *connection);
 
 // Utils
 char *touppercase(char *str);
+int merge_port(int ports[2]);
+int *split_port(int port);
+char *replace_dots_with_commas(char *string);
 
 // Destroyers
 void destroy_connection(connection_t *connection);
 void destroy_command(command_t *command);
 void destroy_server(
     server_t *server, struct pollfd *fds, connection_t *connections);
+
+// Data Socket
+data_socket_t setup_data_socket(void);
 
 // Commands
 command_status_t user_command(command_t *command, connection_t *connection);

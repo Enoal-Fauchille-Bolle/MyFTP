@@ -2,6 +2,7 @@ name: Chocolatine
 
 # Todo:
 # - Check commit message
+# - Export Scripts
 
 on:
   push:

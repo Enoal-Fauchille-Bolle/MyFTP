@@ -30,6 +30,7 @@ static connection_t init_connection(
     connection.logged_in = false;
     connection.user = NULL;
     connection.working_directory = strdup(server->path);
+    connection.data_socket = NULL;
     return connection;
 }
 
@@ -49,7 +50,7 @@ static void accept_new_connection(server_t *server, connection_t *connections,
 {
     struct sockaddr_in client_addr = {0};
     socklen_t client_addr_len = sizeof(client_addr);
-    int client_sockfd = accept(server->server_sockfd,
+    int client_sockfd = accept(server->sockfd,
         (struct sockaddr *)&client_addr, &client_addr_len);
 
     if (client_sockfd == -1)
@@ -104,7 +105,7 @@ int process_connections(server_t *server)
     struct pollfd fds[MAX_CLIENTS + 1];
     connection_t connections[MAX_CLIENTS + 1];
 
-    init_poll_fds(fds, server->server_sockfd);
+    init_poll_fds(fds, server->sockfd);
     while (1) {
         if (process_connection(server, fds, connections))
             break;

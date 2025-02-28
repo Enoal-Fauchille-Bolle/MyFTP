@@ -18,7 +18,7 @@ void destroy_server(
         }
     }
     free(server->path);
-    close(server->server_sockfd);
+    close(server->sockfd);
 }
 
 void destroy_connection(connection_t *connection)
@@ -26,6 +26,10 @@ void destroy_connection(connection_t *connection)
     free(connection->user);
     free(connection->working_directory);
     free(connection->client_addr);
+    if (connection->data_socket) {
+        close(connection->data_socket->sockfd);
+        free(connection->data_socket);
+    }
     fclose(connection->stream);
 }
 

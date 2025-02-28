@@ -17,6 +17,7 @@ SRC	=	\
 		$(SRC_DIR)/command_executor.c	\
 		$(SRC_DIR)/utils.c	\
 		$(SRC_DIR)/destroyers.c	\
+		$(SRC_DIR)/data_socket.c	\
 		$(SRC_DIR)/commands/user.c	\
 		$(SRC_DIR)/commands/pass.c	\
 		$(SRC_DIR)/commands/cwd.c	\
