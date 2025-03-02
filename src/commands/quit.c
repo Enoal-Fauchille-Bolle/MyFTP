@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** MyFTP
 ** File description:
-** USER Command
+** QUIT Command
 */
 
 #include "myftp.h"

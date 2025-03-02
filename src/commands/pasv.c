@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2025
 ** MyFTP
 ** File description:
-** USER Command
+** PASV Command
 */
 
 #include "myftp.h"
