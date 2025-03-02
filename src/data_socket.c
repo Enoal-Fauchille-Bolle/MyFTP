@@ -7,6 +7,46 @@
 
 #include "myftp.h"
 
+//////////////////////// Data Socket Command Execution ///////////////////////
+static int accept_connection(data_socket_t *data_socket)
+{
+    socklen_t addr_len = sizeof(data_socket->addr);
+
+    data_socket->client_sockfd = accept(data_socket->data_sockfd,
+        (struct sockaddr *)&data_socket->addr, &addr_len);
+    if (data_socket->client_sockfd == -1) {
+        perror("accept");
+        return -1;
+    }
+    printf("Data connection accepted from %s:%d\n",
+        inet_ntoa(data_socket->addr.sin_addr),
+        ntohs(data_socket->addr.sin_port));
+    return 0;
+}
+
+command_status_t execute_data_socket_command(
+    connection_t *connection, command_status_t (*command)(connection_t *))
+{
+    if (accept_connection(connection->data_socket) == -1) {
+        dprintf(connection->client_sockfd,
+            "451 Requested action aborted: local error in processing.\r\n");
+        return COMMAND_FAILURE;
+    }
+    if (command(connection) == COMMAND_FAILURE) {
+        dprintf(connection->client_sockfd,
+            "451 Requested action aborted: local error in processing.\r\n");
+        return COMMAND_FAILURE;
+    }
+    close(connection->data_socket->client_sockfd);
+    close(connection->data_socket->data_sockfd);
+    printf(
+        "Data connection closed on port %d\n", connection->data_socket->port);
+    free(connection->data_socket);
+    connection->data_socket = NULL;
+    return COMMAND_SUCCESS;
+}
+
+//////////////////////////// Data Socket Creation ////////////////////////////
 static int listen_socket(int data_socket_sockfd)
 {
     if (listen(data_socket_sockfd, MAX_CLIENTS) == -1) {
@@ -73,5 +113,6 @@ data_socket_t setup_data_socket(void)
     final_port = get_final_port(data_socket_sockfd);
     if (listen_socket(data_socket_sockfd) == -1)
         return (data_socket_t){0};
-    return (data_socket_t){data_socket_sockfd, data_socket_addr, final_port};
+    return (data_socket_t){
+        data_socket_sockfd, data_socket_addr, final_port, 0};
 }

@@ -27,7 +27,7 @@ void destroy_connection(connection_t *connection)
     free(connection->working_directory);
     free(connection->client_addr);
     if (connection->data_socket) {
-        close(connection->data_socket->sockfd);
+        close(connection->data_socket->data_sockfd);
         free(connection->data_socket);
     }
     fclose(connection->stream);

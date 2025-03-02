@@ -31,9 +31,10 @@ typedef struct server_s {
 } server_t;
 
 typedef struct data_socket_s {
-    int sockfd;
+    int data_sockfd;
     struct sockaddr_in addr;
     int port;
+    int client_sockfd;
 } data_socket_t;
 
 typedef struct connection_s {
@@ -95,6 +96,8 @@ void destroy_server(
 
 // Data Socket
 data_socket_t setup_data_socket(void);
+command_status_t execute_data_socket_command(
+    connection_t *connection, command_status_t (*command)(connection_t *));
 
 // Commands
 command_status_t user_command(command_t *command, connection_t *connection);

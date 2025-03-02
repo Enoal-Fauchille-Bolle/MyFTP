@@ -7,7 +7,7 @@
 
 #include "myftp.h"
 
-static void data_socket(connection_t *connection)
+static command_status_t create_data_socket(connection_t *connection)
 {
     data_socket_t *data_socket = malloc(sizeof(data_socket_t));
     int *ports = NULL;
@@ -15,9 +15,10 @@ static void data_socket(connection_t *connection)
     if (data_socket == NULL) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
-        return;
+        return COMMAND_FAILURE;
     }
     *data_socket = setup_data_socket();
+    connection->data_socket = data_socket;
     printf("Data socket created on port %d\n", data_socket->port);
     ports = split_port(data_socket->port);
     dprintf(connection->client_sockfd,
@@ -25,7 +26,7 @@ static void data_socket(connection_t *connection)
         replace_dots_with_commas(inet_ntoa(data_socket->addr.sin_addr)),
         ports[0], ports[1]);
     free(ports);
-    connection->data_socket = data_socket;
+    return COMMAND_SUCCESS;
 }
 
 command_status_t pasv_command(command_t *command, connection_t *connection)
@@ -36,6 +37,5 @@ command_status_t pasv_command(command_t *command, connection_t *connection)
             "530 Please login with USER and PASS.\r\n");
         return COMMAND_FAILURE;
     }
-    data_socket(connection);
-    return COMMAND_SUCCESS;
+    return create_data_socket(connection);
 }
