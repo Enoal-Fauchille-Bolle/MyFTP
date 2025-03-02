@@ -96,8 +96,9 @@ void destroy_server(
 
 // Data Socket
 data_socket_t setup_data_socket(void);
-command_status_t execute_data_socket_command(
-    connection_t *connection, command_status_t (*command)(connection_t *));
+command_status_t execute_data_socket_command(connection_t *connection,
+    command_status_t (*command_execution)(connection_t *, command_t *),
+    command_t *command);
 
 // Commands
 command_status_t user_command(command_t *command, connection_t *connection);

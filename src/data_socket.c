@@ -24,15 +24,16 @@ static int accept_connection(data_socket_t *data_socket)
     return 0;
 }
 
-command_status_t execute_data_socket_command(
-    connection_t *connection, command_status_t (*command)(connection_t *))
+command_status_t execute_data_socket_command(connection_t *connection,
+    command_status_t (*command_execution)(connection_t *, command_t *),
+    command_t *command)
 {
     if (accept_connection(connection->data_socket) == -1) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
-    if (command(connection) == COMMAND_FAILURE) {
+    if (command_execution(connection, command) == COMMAND_FAILURE) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
