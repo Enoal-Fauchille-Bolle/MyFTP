@@ -24,6 +24,23 @@ static int accept_connection(data_socket_t *data_socket)
     return 0;
 }
 
+static command_status_t fork_execution(connection_t *connection,
+    command_status_t (*command_execution)(connection_t *, command_t *),
+    command_t *command)
+{
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork");
+        return COMMAND_FAILURE;
+    }
+    if (pid == 0) {
+        command_execution(connection, command);
+        exit(0);
+    }
+    return COMMAND_SUCCESS;
+}
+
 command_status_t execute_data_socket_command(connection_t *connection,
     command_status_t (*command_execution)(connection_t *, command_t *),
     command_t *command)
@@ -33,7 +50,8 @@ command_status_t execute_data_socket_command(connection_t *connection,
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
-    if (command_execution(connection, command) == COMMAND_FAILURE) {
+    if (fork_execution(connection, command_execution, command) ==
+        COMMAND_FAILURE) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
