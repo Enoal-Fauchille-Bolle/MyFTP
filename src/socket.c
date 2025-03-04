@@ -47,7 +47,7 @@ static int setup_socket_fd(void)
     return server_sockfd;
 }
 
-static int get_final_port(int server_sockfd)
+static int set_final_port(int server_sockfd)
 {
     struct sockaddr_in server_addr = {0};
     socklen_t addr_len = sizeof(server_addr);
@@ -68,7 +68,7 @@ server_t setup_socket(int port, char *raw_path)
     server_addr = init_sockin(port);
     if (bind_socket(server_sockfd, &server_addr) == -1)
         return (server_t){0};
-    final_port = get_final_port(server_sockfd);
+    final_port = set_final_port(server_sockfd);
     if (listen_socket(server_sockfd) == -1)
         return (server_t){0};
     chdir(raw_path);
