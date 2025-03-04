@@ -7,6 +7,20 @@
 
 #include "myftp.h"
 
+static data_socket_t *init_passive_data_socket(void)
+{
+    data_socket_t *data_socket = malloc(sizeof(data_socket_t));
+
+    if (data_socket == NULL) {
+        perror("malloc");
+        return NULL;
+    }
+    data_socket->data_socket_mode = PASSIVE;
+    data_socket->address = NULL;
+    data_socket->client_sockfd = -1;
+    return data_socket;
+}
+
 static int listen_socket(int data_socket_sockfd)
 {
     if (listen(data_socket_sockfd, MAX_CLIENTS) == -1) {
@@ -49,36 +63,36 @@ static int setup_socket_fd(void)
     return data_socket_sockfd;
 }
 
-static int get_final_port(int data_socket_sockfd)
+static void set_final_port(
+    data_socket_t *data_socket, int data_socket_sockfd)
 {
     struct sockaddr_in data_socket_addr = {0};
     socklen_t addr_len = sizeof(data_socket_addr);
 
     getsockname(
         data_socket_sockfd, (struct sockaddr *)&data_socket_addr, &addr_len);
-    return ntohs(data_socket_addr.sin_port);
+    data_socket->port = ntohs(data_socket_addr.sin_port);
 }
 
 data_socket_t *setup_passive_data_socket(void)
 {
-    data_socket_t *data_socket = malloc(sizeof(data_socket_t));
+    data_socket_t *data_socket = init_passive_data_socket();
     int data_socket_sockfd = setup_socket_fd();
     struct sockaddr_in data_socket_addr = {0};
-    int final_port = 0;
 
+    if (data_socket == NULL || data_socket_sockfd == -1) {
+        perror("malloc");
+        return NULL;
+    }
     if (data_socket_sockfd == -1)
         return NULL;
     data_socket_addr = init_sockin();
     if (bind_socket(data_socket_sockfd, &data_socket_addr) == -1)
         return NULL;
-    final_port = get_final_port(data_socket_sockfd);
+    set_final_port(data_socket, data_socket_sockfd);
     if (listen_socket(data_socket_sockfd) == -1)
         return NULL;
-    data_socket->data_socket_mode = PASSIVE;
     data_socket->data_sockfd = data_socket_sockfd;
     data_socket->addr = data_socket_addr;
-    data_socket->address = NULL;
-    data_socket->port = final_port;
-    data_socket->client_sockfd = -1;
     return data_socket;
 }
