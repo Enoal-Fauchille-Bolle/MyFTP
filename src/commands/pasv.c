@@ -7,23 +7,23 @@
 
 #include "myftp.h"
 
-static command_status_t create_data_socket(connection_t *connection)
+static command_status_t create_passive_data_socket(connection_t *connection)
 {
-    data_socket_t *data_socket = malloc(sizeof(data_socket_t));
     int *ports = NULL;
 
-    if (data_socket == NULL) {
+    connection->data_socket = setup_passive_data_socket();
+    if (connection->data_socket == NULL) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
-    *data_socket = setup_data_socket();
-    connection->data_socket = data_socket;
-    printf("Data socket created on port %d\n", data_socket->port);
-    ports = split_port(data_socket->port);
+    printf("Passive Data socket created on port %d\n",
+        connection->data_socket->port);
+    ports = split_port(connection->data_socket->port);
     dprintf(connection->client_sockfd,
         "227 Entering Passive Mode (%s,%d,%d).\r\n",
-        replace_dots_with_commas(inet_ntoa(data_socket->addr.sin_addr)),
+        replace_dots_with_commas(
+            inet_ntoa(connection->data_socket->addr.sin_addr)),
         ports[0], ports[1]);
     free(ports);
     return COMMAND_SUCCESS;
@@ -37,5 +37,5 @@ command_status_t pasv_command(command_t *command, connection_t *connection)
             "530 Please login with USER and PASS.\r\n");
         return COMMAND_FAILURE;
     }
-    return create_data_socket(connection);
+    return create_passive_data_socket(connection);
 }
