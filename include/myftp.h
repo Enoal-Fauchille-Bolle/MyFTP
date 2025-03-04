@@ -36,7 +36,7 @@ typedef enum data_socket_mode_e {
 } data_socket_mode_t;
 
 typedef struct data_socket_s {
-    data_socket_mode_t mode; // pasv/port
+    data_socket_mode_t data_socket_mode; // pasv/port
     int data_sockfd; // pasv
     struct sockaddr_in addr; // pasv/port
     int *address; // port

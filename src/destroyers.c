@@ -25,7 +25,7 @@ void destroy_data_socket(data_socket_t *data_socket, bool verbose)
 {
     if (data_socket == NULL)
         return;
-    if (data_socket->mode == PASSIVE) {
+    if (data_socket->data_socket_mode == PASSIVE) {
         if (verbose)
             printf(
                 "Passive Data socket closed on port %d\n", data_socket->port);

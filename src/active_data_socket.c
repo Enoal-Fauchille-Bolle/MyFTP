@@ -15,7 +15,7 @@ static data_socket_t *init_active_data_socket(void)
         perror("malloc");
         return NULL;
     }
-    data_socket->mode = ACTIVE;
+    data_socket->data_socket_mode = ACTIVE;
     data_socket->client_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (data_socket->client_sockfd == -1) {
         perror("socket");

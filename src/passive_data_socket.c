@@ -74,7 +74,7 @@ data_socket_t *setup_passive_data_socket(void)
     final_port = get_final_port(data_socket_sockfd);
     if (listen_socket(data_socket_sockfd) == -1)
         return NULL;
-    data_socket->mode = PASSIVE;
+    data_socket->data_socket_mode = PASSIVE;
     data_socket->data_sockfd = data_socket_sockfd;
     data_socket->addr = data_socket_addr;
     data_socket->address = NULL;

@@ -57,7 +57,7 @@ static int active_connection(data_socket_t *data_socket)
 
 static int establish_data_socket_connection(data_socket_t *data_socket)
 {
-    if (data_socket->mode == PASSIVE) {
+    if (data_socket->data_socket_mode == PASSIVE) {
         if (accept_connection(data_socket) == -1)
             return -1;
     } else {
