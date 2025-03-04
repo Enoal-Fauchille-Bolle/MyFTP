@@ -34,6 +34,7 @@ SRC	=	\
 		$(SRC_DIR)/commands/retr.c	\
 		$(SRC_DIR)/commands/stor.c	\
 		$(SRC_DIR)/commands/list.c	\
+		$(SRC_DIR)/commands/type.c	\
 
 NAME	=	myftp
 

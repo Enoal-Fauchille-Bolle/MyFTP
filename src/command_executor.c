@@ -12,7 +12,7 @@ const command_handler_t command_handlers[] = {{"USER", user_command},
     {"QUIT", quit_command}, {"DELE", dele_command}, {"PWD", pwd_command},
     {"PASV", pasv_command}, {"PORT", port_command}, {"HELP", help_command},
     {"NOOP", noop_command}, {"RETR", retr_command}, {"STOR", stor_command},
-    {"LIST", list_command}, {NULL, NULL}};
+    {"LIST", list_command}, {"TYPE", type_command}, {NULL, NULL}};
 
 static command_handler_t get_command_handler(command_t *command)
 {

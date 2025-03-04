@@ -24,13 +24,13 @@ static connection_t init_connection(
     if (connection.stream == NULL) {
         perror("fdopen");
         close(client_sockfd);
-        connection = (connection_t){0};
-        return connection;
+        return (connection_t){0};
     }
     connection.logged_in = false;
     connection.user = NULL;
     connection.working_directory = strdup(server->path);
     connection.data_socket = NULL;
+    connection.transfer_mode = BINARY;
     return connection;
 }
 
@@ -50,8 +50,8 @@ static void accept_new_connection(server_t *server, connection_t *connections,
 {
     struct sockaddr_in client_addr = {0};
     socklen_t client_addr_len = sizeof(client_addr);
-    int client_sockfd = accept(server->sockfd,
-        (struct sockaddr *)&client_addr, &client_addr_len);
+    int client_sockfd = accept(
+        server->sockfd, (struct sockaddr *)&client_addr, &client_addr_len);
 
     if (client_sockfd == -1)
         return perror("accept");

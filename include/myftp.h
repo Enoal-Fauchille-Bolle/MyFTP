@@ -35,6 +35,11 @@ typedef enum data_socket_mode_e {
     ACTIVE,
 } data_socket_mode_t;
 
+typedef enum transfer_mode_e {
+    BINARY,
+    ASCII,
+} transfer_mode_t;
+
 typedef struct data_socket_s {
     data_socket_mode_t data_socket_mode; // pasv/port
     int data_sockfd; // pasv
@@ -53,6 +58,7 @@ typedef struct connection_s {
     char *user;
     char *working_directory;
     data_socket_t *data_socket;
+    transfer_mode_t transfer_mode;
 } connection_t;
 
 typedef struct command_s {
@@ -128,5 +134,6 @@ command_status_t noop_command(command_t *command, connection_t *connection);
 command_status_t retr_command(command_t *command, connection_t *connection);
 command_status_t stor_command(command_t *command, connection_t *connection);
 command_status_t list_command(command_t *command, connection_t *connection);
+command_status_t type_command(command_t *command, connection_t *connection);
 
 #endif /* !MYFTP_H_ */
