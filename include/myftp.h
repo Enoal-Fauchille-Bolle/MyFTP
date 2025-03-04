@@ -30,11 +30,18 @@ typedef struct server_s {
     char *path;
 } server_t;
 
+typedef enum data_socket_mode_e {
+    PASSIVE,
+    ACTIVE,
+} data_socket_mode_t;
+
 typedef struct data_socket_s {
-    int data_sockfd;
-    struct sockaddr_in addr;
-    int port;
-    int client_sockfd;
+    data_socket_mode_t mode; // pasv/port
+    int data_sockfd; // pasv
+    struct sockaddr_in addr; // pasv/port
+    int *address; // port
+    int port; // pasv/port
+    int client_sockfd; // pasv/port
 } data_socket_t;
 
 typedef struct connection_s {
@@ -54,7 +61,7 @@ typedef struct command_s {
     char **argv;
 } command_t;
 
-typedef enum command_status {
+typedef enum command_status_e {
     COMMAND_SUCCESS,
     COMMAND_FAILURE,
     COMMAND_NOT_FOUND,
@@ -89,13 +96,19 @@ int *split_port(int port);
 char *replace_dots_with_commas(char *string);
 
 // Destroyers
-void destroy_connection(connection_t *connection);
+void destroy_connection(connection_t *connection, bool verbose);
 void destroy_command(command_t *command);
 void destroy_server(
     server_t *server, struct pollfd *fds, connection_t *connections);
+void destroy_data_socket(data_socket_t *data_socket, bool verbose);
 
-// Data Socket
-data_socket_t setup_data_socket(void);
+// Passive Data Socket
+data_socket_t *setup_passive_data_socket(void);
+
+// Active Data Socket
+data_socket_t *setup_active_data_socket(int *host_port);
+
+// Data Socket Executor
 command_status_t execute_data_socket_command(connection_t *connection,
     command_status_t (*command_execution)(connection_t *, command_t *),
     command_t *command);
