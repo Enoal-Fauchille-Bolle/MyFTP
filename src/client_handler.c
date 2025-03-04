@@ -11,7 +11,7 @@ static char *read_socket(connection_t *connection)
 {
     char *line = NULL;
     size_t len = 0;
-    ssize_t read;
+    ssize_t read = 0;
 
     read = getline(&line, &len, connection->stream);
     if (read == -1) {
@@ -36,9 +36,9 @@ static command_status_t handle_client_command(connection_t *connection)
         inet_ntoa(connection->client_addr->sin_addr),
         ntohs(connection->client_addr->sin_port), buffer);
     command = parse_buffer(buffer);
+    free(buffer);
     result = execute_command(&command, connection);
     destroy_command(&command);
-    free(buffer);
     return result;
 }
 
@@ -51,7 +51,7 @@ void handle_connection(struct pollfd *fd, connection_t *connection)
         printf("Disconnected %s:%d\n",
             inet_ntoa(connection->client_addr->sin_addr),
             ntohs(connection->client_addr->sin_port));
-        destroy_connection(connection);
+        destroy_connection(connection, true);
         close(fd->fd);
         fd->fd = -1;
     }
