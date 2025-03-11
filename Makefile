@@ -16,6 +16,7 @@ SRC	=	\
 		$(SRC_DIR)/command_parser.c	\
 		$(SRC_DIR)/command_executor.c	\
 		$(SRC_DIR)/utils.c	\
+		$(SRC_DIR)/signal.c	\
 		$(SRC_DIR)/destroyers.c	\
 		$(SRC_DIR)/passive_data_socket.c	\
 		$(SRC_DIR)/active_data_socket.c	\

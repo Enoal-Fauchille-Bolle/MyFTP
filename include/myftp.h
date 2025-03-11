@@ -22,6 +22,7 @@
     #include <string.h>
     #include <stdbool.h>
     #include <dirent.h>
+    #include <signal.h>
 
 typedef struct server_s {
     int sockfd;
@@ -100,6 +101,10 @@ char *touppercase(char *str);
 int merge_port(int ports[2]);
 int *split_port(int port);
 char *replace_dots_with_commas(char *string);
+int check_path(char *path);
+
+// Signal
+void setup_signal(void);
 
 // Destroyers
 void destroy_connection(connection_t *connection, bool verbose);

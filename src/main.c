@@ -6,7 +6,6 @@
 */
 
 #include "myftp.h"
-#include <signal.h>
 
 static void help_page(void)
 {
@@ -15,11 +14,13 @@ static void help_page(void)
     puts("\tpath is the path to the home directory for the Anonymous user");
 }
 
-static int check_path(char *path)
+static int check_args(int port, char *path)
 {
-    if (path == NULL)
+    if (port <= 0 || port > 65535) {
+        puts("Error: Invalid port number");
         return 84;
-    if (access(path, F_OK) == -1) {
+    } else if (check_path(path) == 84) {
+        puts("Error: Invalid path");
         return 84;
     }
     return 0;
@@ -37,23 +38,6 @@ static int myftp(int port, char *path)
     return process_connections(&server);
 }
 
-static void handle_signal(int sig)
-{
-    (void)sig;
-    printf("\nStopping FTP server...\n");
-}
-
-static void setup_signal(void)
-{
-    struct sigaction sa;
-
-    sa.sa_handler = handle_signal;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
-}
-
 int main(int ac, char **av)
 {
     int port = 0;
@@ -69,13 +53,8 @@ int main(int ac, char **av)
     }
     port = atoi(av[1]);
     path = av[2];
-    if (port == 0) {
-        puts("Error: Invalid port number");
+    if (check_args(port, path) == 84)
         return 84;
-    } else if (check_path(path) == 84) {
-        puts("Error: Invalid path");
-        return 84;
-    }
     setup_signal();
     myftp(port, path);
     return 0;

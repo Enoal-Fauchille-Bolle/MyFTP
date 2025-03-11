@@ -9,6 +9,16 @@
 
 #include "myftp.h"
 
+int check_path(char *path)
+{
+    if (path == NULL)
+        return 84;
+    if (access(path, F_OK) == -1) {
+        return 84;
+    }
+    return 0;
+}
+
 char *touppercase(char *str)
 {
     if (str == NULL) {
