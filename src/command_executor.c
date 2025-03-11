@@ -14,6 +14,16 @@ const command_handler_t command_handlers[] = {{"USER", user_command},
     {"NOOP", noop_command}, {"RETR", retr_command}, {"STOR", stor_command},
     {"LIST", list_command}, {"TYPE", type_command}, {NULL, NULL}};
 
+static void not_found_message(connection_t *connection)
+{
+    if (connection->logged_in) {
+        dprintf(connection->client_sockfd, "500 Unknown command.\r\n");
+    } else {
+        dprintf(connection->client_sockfd,
+            "530 Please login with USER and PASS.\r\n");
+    }
+}
+
 static command_handler_t get_command_handler(command_t *command)
 {
     touppercase(command->name);
@@ -27,15 +37,15 @@ static command_handler_t get_command_handler(command_t *command)
 
 command_status_t execute_command(command_t *command, connection_t *connection)
 {
-    command_handler_t handler = get_command_handler(command);
+    command_handler_t handler = {0};
 
+    if (!command) {
+        not_found_message(connection);
+        return COMMAND_NOT_FOUND;
+    }
+    handler = get_command_handler(command);
     if (!handler.handler) {
-        if (connection->logged_in) {
-            dprintf(connection->client_sockfd, "500 Unknown command.\r\n");
-        } else {
-            dprintf(connection->client_sockfd,
-                "530 Please login with USER and PASS.\r\n");
-        }
+        not_found_message(connection);
         return COMMAND_NOT_FOUND;
     }
     return handler.handler(command, connection);

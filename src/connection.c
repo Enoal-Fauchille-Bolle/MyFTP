@@ -57,7 +57,7 @@ static void accept_new_connection(server_t *server, connection_t *connections,
         return perror("accept");
     printf("Connection from %s:%d\n", inet_ntoa(client_addr.sin_addr),
         ntohs(client_addr.sin_port));
-    dprintf(client_sockfd, "220 Service ready for new user.\r\n");
+    dprintf(client_sockfd, "220 Service ready for new user. (myftp)\r\n");
     for (int i = 1; i < max_fds; i++) {
         if (fds[i].fd < 0) {
             connections[i] =

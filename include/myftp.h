@@ -23,6 +23,7 @@
     #include <stdbool.h>
     #include <dirent.h>
     #include <signal.h>
+    #include <ctype.h>
 
 typedef struct server_s {
     int sockfd;
@@ -91,7 +92,7 @@ server_t setup_socket(int port, char *path);
 int process_connections(server_t *server);
 
 // Command Parser
-command_t parse_buffer(char *buffer);
+command_t *parse_buffer(char *buffer);
 
 // Command Executor
 command_status_t execute_command(command_t *command, connection_t *connection);
@@ -101,7 +102,7 @@ char *touppercase(char *str);
 int merge_port(int ports[2]);
 int *split_port(int port);
 char *replace_dots_with_commas(char *string);
-int check_path(char *path);
+char *trim(char *str);
 
 // Signal
 void setup_signal(void);

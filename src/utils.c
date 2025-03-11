@@ -5,19 +5,7 @@
 ** Utilities
 */
 
-#include <ctype.h>
-
 #include "myftp.h"
-
-int check_path(char *path)
-{
-    if (path == NULL)
-        return 84;
-    if (access(path, F_OK) == -1) {
-        return 84;
-    }
-    return 0;
-}
 
 char *touppercase(char *str)
 {
@@ -62,4 +50,26 @@ char *replace_dots_with_commas(char *string)
         }
     }
     return string;
+}
+
+char *trim(char *str)
+{
+    char *start = str;
+    char *end = start + strlen(start) - 1;
+
+    if (!str || *str == '\0')
+        return str;
+    while (*start && isspace(*start))
+        start++;
+    if (*start == '\0') {
+        *str = '\0';
+        return str;
+    }
+    while (end > start && isspace(*end)) {
+        *end = '\0';
+        end--;
+    }
+    if (start != str)
+        memmove(str, start, strlen(start) + 1);
+    return str;
 }

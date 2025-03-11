@@ -14,6 +14,16 @@ static void help_page(void)
     puts("\tpath is the path to the home directory for the Anonymous user");
 }
 
+static int check_path(char *path)
+{
+    if (path == NULL)
+        return 84;
+    if (access(path, F_OK) == -1) {
+        return 84;
+    }
+    return 0;
+}
+
 static int check_args(int port, char *path)
 {
     if (port <= 0 || port > 65535) {
@@ -59,3 +69,14 @@ int main(int ac, char **av)
     myftp(port, path);
     return 0;
 }
+
+// int main(void)
+// {
+//     command_t *command = parse_buffer("   ");
+
+//     (void)myftp;
+//     (void)check_args;
+//     (void)help_page;
+//     destroy_command(command);
+//     return 0;
+// }

@@ -46,6 +46,9 @@ void destroy_connection(connection_t *connection, bool verbose)
 {
     if (connection == NULL)
         return;
+    printf("Disconnected %s:%d\n",
+        inet_ntoa(connection->client_addr->sin_addr),
+        ntohs(connection->client_addr->sin_port));
     free(connection->user);
     if (connection->working_directory)
         free(connection->working_directory);

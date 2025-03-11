@@ -27,7 +27,7 @@ static command_status_t handle_client_command(connection_t *connection)
 {
     command_status_t result = COMMAND_NOT_FOUND;
     char *buffer = NULL;
-    command_t command = {0};
+    command_t *command = NULL;
 
     buffer = read_socket(connection);
     if (!buffer)
@@ -37,8 +37,8 @@ static command_status_t handle_client_command(connection_t *connection)
         ntohs(connection->client_addr->sin_port), buffer);
     command = parse_buffer(buffer);
     free(buffer);
-    result = execute_command(&command, connection);
-    destroy_command(&command);
+    result = execute_command(command, connection);
+    destroy_command(command);
     return result;
 }
 
@@ -48,9 +48,6 @@ void handle_connection(struct pollfd *fd, connection_t *connection)
 
     if (result == COMMAND_QUIT) {
         dprintf(fd->fd, "221 Service closing control connection.\r\n");
-        printf("Disconnected %s:%d\n",
-            inet_ntoa(connection->client_addr->sin_addr),
-            ntohs(connection->client_addr->sin_port));
         destroy_connection(connection, true);
         close(fd->fd);
         fd->fd = -1;
