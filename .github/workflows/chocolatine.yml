@@ -166,7 +166,7 @@ jobs:
 
           for executable in "${executables_list[@]}"; do
               # valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 2>&1 | tee valgrind.log
-              timeout ${{ env.VALGRIND_TIMEOUT }} valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 3000 ./ 2>&1 | tee valgrind.log
+              timeout --preserve-status -s SIGINT ${{ env.VALGRIND_TIMEOUT }} valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 3000 ./ 2>&1 | tee valgrind.log
               if grep -q "ERROR SUMMARY: [^0]" valgrind.log; then
                   errors=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $4}')
                   contexts=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $7}')
