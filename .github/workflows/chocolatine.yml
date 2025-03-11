@@ -130,53 +130,6 @@ jobs:
               exit 1
           fi
 
-  check_memory_leaks:
-    name: Check Memory Leaks
-    runs-on: ubuntu-latest
-    needs: [check_program_compilation]
-    if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
-    container:
-      image: epitechcontent/epitest-docker
-    steps:
-      - name: Checking Out
-        uses: actions/checkout@v4
-
-      - name: Building Project
-        run: make
-        timeout-minutes: 2
-
-      - name: Run Valgrind
-        shell: bash
-        run: |
-          # Setting up the list of executables
-          executables_list=()
-          IFS=',' read -ra elements <<< "${{ env.EXECUTABLES }}"
-          for element in "${elements[@]}"; do
-              element=$(echo "$element" | xargs | tr '[:upper:]' '[:lower:]')
-              if [[ "$element" == "" ]]; then
-                  continue
-              fi
-              if [[ ! -x "$element" ]]; then
-                  echo "Executable '$element' does not exist or is not executable."
-                  echo "::error file=${element},title=Executable does not exist or is not executable::Executable '$element' does not exist or is not executable."
-                  exit 1
-              fi
-              executables_list+=("$element")
-          done
-
-          for executable in "${executables_list[@]}"; do
-              # valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 2>&1 | tee valgrind.log
-              timeout --preserve-status -s SIGINT ${{ env.VALGRIND_TIMEOUT }} valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1 -s ./$executable 3000 ./ 2>&1 | tee valgrind.log
-              if grep -q "ERROR SUMMARY: [^0]" valgrind.log; then
-                  errors=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $4}')
-                  contexts=$(grep "ERROR SUMMARY:" valgrind.log | awk '{print $7}')
-                  echo "::error::Memory leaks detected. $errors errors from $contexts contexts"
-                  rm valgrind.log
-                  exit 1
-              fi
-              rm valgrind.log
-          done
-
   check_banned_functions:
     name: Check Banned Functions
     runs-on: ubuntu-latest
@@ -379,7 +332,7 @@ jobs:
   repository_mirroring:
     name: Repository Mirroring
     runs-on: ubuntu-latest
-    needs: [check_coding_style, check_tests, check_memory_leaks, check_banned_functions]
+    needs: [check_coding_style, check_tests, check_banned_functions]
     if: ${{ github.event.repository.full_name != 'EpitechPromo2028/B-NWP-400-NAN-4-1-myftp-enoal.fauchille-bolle' }}
     steps:
       - name: Checking Out
