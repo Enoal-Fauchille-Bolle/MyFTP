@@ -59,7 +59,11 @@ int main(int ac, char **av)
     int port = 0;
     char *path = NULL;
 
-    if (ac != 3 || (ac >= 2 && strcmp(av[1], "-help") == 0)) {
+    if (ac != 3) {
+        help_page();
+        return 84;
+    }
+    if ((ac >= 2 && strcmp(av[1], "-help") == 0)) {
         help_page();
         return 0;
     }
