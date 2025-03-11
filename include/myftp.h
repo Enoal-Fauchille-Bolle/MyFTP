@@ -106,6 +106,7 @@ char *trim(char *str);
 
 // Signal
 void setup_signal(void);
+bool is_server_stopped(void);
 
 // Destroyers
 void destroy_connection(connection_t *connection, bool verbose);

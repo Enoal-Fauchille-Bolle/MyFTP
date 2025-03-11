@@ -106,7 +106,7 @@ int process_connections(server_t *server)
     connection_t connections[MAX_CLIENTS + 1];
 
     init_poll_fds(fds, server->sockfd);
-    while (1) {
+    while (!is_server_stopped()) {
         if (process_connection(server, fds, connections))
             break;
     }

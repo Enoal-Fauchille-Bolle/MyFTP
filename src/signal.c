@@ -7,10 +7,18 @@
 
 #include "myftp.h"
 
+static bool stop_server = false;
+
+bool is_server_stopped(void)
+{
+    return stop_server;
+}
+
 static void handle_signal(int sig)
 {
     (void)sig;
     printf("\nStopping FTP server...\n");
+    stop_server = true;
 }
 
 void setup_signal(void)
