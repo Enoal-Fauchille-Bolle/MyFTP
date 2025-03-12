@@ -72,6 +72,7 @@ int client(char *ip, int port)
     if (!client)
         return 84;
     if (login(client) == 84) {
+        destroy_client(client);
         puts("\nExiting...");
         return 84;
     }
