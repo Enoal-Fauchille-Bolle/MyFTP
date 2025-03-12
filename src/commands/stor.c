@@ -16,10 +16,11 @@ static int transfer_file_data(FILE *file, int client_sockfd)
 
     if (client_stream == NULL)
         return -1;
-    while ((read_bytes = getline(&line, &len, client_stream)) > 0) {
+    read_bytes = getline(&line, &len, client_stream);
+    while (read_bytes > 0) {
         fwrite(line, 1, read_bytes, file);
+        read_bytes = getline(&line, &len, client_stream);
     }
-
     free(line);
     fclose(client_stream);
     return read_bytes;
