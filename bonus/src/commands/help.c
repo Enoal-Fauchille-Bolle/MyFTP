@@ -13,5 +13,5 @@ command_status_t help_command(command_t *command, client_t *client)
     (void)client;
     printf("Available commands:\n");
     printf("HELP QUIT EXIT LS PWD CD GET PUT\n");
-    return COMMAND_QUIT;
+    return COMMAND_SUCCESS;
 }
