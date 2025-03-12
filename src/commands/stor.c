@@ -7,12 +7,12 @@
 
 #include "myftp.h"
 
-static int transfer_file_data(FILE *file, int client_sockfd)
+static int transfer_file_data(FILE *file, int data_socket_sockfd)
 {
     char *line = NULL;
     size_t len = 0;
     ssize_t read_bytes;
-    FILE *client_stream = fdopen(client_sockfd, "r");
+    FILE *client_stream = fdopen(data_socket_sockfd, "r");
 
     if (client_stream == NULL)
         return -1;
@@ -38,9 +38,7 @@ static command_status_t execute_stor_command(
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
-    puts("a");
     transfer_file_data(file, connection->data_socket->client_sockfd);
-    puts("b");
     dprintf(connection->client_sockfd, "226 Transfer complete.\r\n");
     fclose(file);
     return COMMAND_SUCCESS;
