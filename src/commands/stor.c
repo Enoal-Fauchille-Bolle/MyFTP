@@ -9,13 +9,19 @@
 
 static int transfer_file_data(FILE *file, int client_sockfd)
 {
-    char buffer[1024];
-    int read_bytes = read(client_sockfd, buffer, sizeof(buffer));
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read_bytes;
+    FILE *client_stream = fdopen(client_sockfd, "r");
 
-    while (read_bytes > 0) {
-        read_bytes = read(client_sockfd, buffer, sizeof(buffer));
-        fwrite(buffer, 1, read_bytes, file);
+    if (client_stream == NULL)
+        return -1;
+    while ((read_bytes = getline(&line, &len, client_stream)) > 0) {
+        fwrite(line, 1, read_bytes, file);
     }
+
+    free(line);
+    fclose(client_stream);
     return read_bytes;
 }
 
@@ -31,7 +37,9 @@ static command_status_t execute_stor_command(
             "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
+    puts("a");
     transfer_file_data(file, connection->data_socket->client_sockfd);
+    puts("b");
     dprintf(connection->client_sockfd, "226 Transfer complete.\r\n");
     fclose(file);
     return COMMAND_SUCCESS;
