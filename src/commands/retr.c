@@ -14,6 +14,11 @@ static int check_file_exists(connection_t *connection, command_t *command)
     chdir(connection->working_directory);
     fp = fopen(command->argv[0], "r");
     chdir(connection->server->path);
+    if (fp == NULL && access(command->argv[0], R_OK) != 0) {
+        dprintf(connection->client_sockfd,
+            "550 Permission denied.\r\n");
+        return -1;
+    }
     if (fp == NULL) {
         dprintf(connection->client_sockfd,
             "451 Requested action aborted: local error in processing.\r\n");
