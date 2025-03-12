@@ -48,7 +48,6 @@ static command_status_t execute_stor_command(
 
 command_status_t stor_command(command_t *command, connection_t *connection)
 {
-    (void)command;
     if (!connection->logged_in) {
         dprintf(connection->client_sockfd,
             "530 Please login with USER and PASS.\r\n");
