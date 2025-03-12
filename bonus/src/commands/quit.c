@@ -9,10 +9,11 @@
 
 command_status_t quit_command(command_t *command, client_t *client)
 {
-    char *response = read_response(client->sockfd);
+    char *response = NULL;
 
     (void)command;
     dprintf(client->sockfd, "QUIT\r\n");
+    response = read_response(client->sockfd);
     if (!response) {
         fprintf(stderr, "Error reading response\n");
         return COMMAND_FAILURE;
