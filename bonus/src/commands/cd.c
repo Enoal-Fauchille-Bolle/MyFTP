@@ -26,9 +26,10 @@ static void display_current_path(char *response)
 
 static void display_new_path(client_t *client)
 {
-    char *response = read_response(client->sockfd);
+    char *response = NULL;
 
     dprintf(client->sockfd, "PWD\r\n");
+    response = read_response(client->sockfd);
     if (!response) {
         fprintf(stderr, "Failed to read response from server\n");
     }
