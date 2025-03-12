@@ -7,7 +7,7 @@
 
 #include "myftp.h"
 
-static void display_result(int sockfd)
+static void list_result(int sockfd)
 {
     char *line = NULL;
     size_t len = 0;
@@ -60,7 +60,7 @@ static command_status_t execute_ls_command(client_t *client)
         client->data_socket = NULL;
         return COMMAND_FAILURE;
     }
-    display_result(client->data_socket->sockfd);
+    list_result(client->data_socket->sockfd);
     destroy_data_socket(client->data_socket);
     client->data_socket = NULL;
     return COMMAND_SUCCESS;
