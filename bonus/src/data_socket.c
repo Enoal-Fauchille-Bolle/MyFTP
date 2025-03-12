@@ -109,3 +109,16 @@ command_status_t connect_data_socket(data_socket_t *data_socket)
     }
     return COMMAND_SUCCESS;
 }
+
+command_status_t initialize_client_data_socket(client_t *client)
+{
+    client->data_socket = create_data_socket(client);
+    if (!client->data_socket) {
+        fprintf(stderr, "Error creating data socket\n");
+        return COMMAND_FAILURE;
+    }
+    if (connect_data_socket(client->data_socket) == COMMAND_FAILURE) {
+        return COMMAND_FAILURE;
+    }
+    return COMMAND_SUCCESS;
+}

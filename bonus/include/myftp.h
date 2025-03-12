@@ -90,6 +90,7 @@ bool is_client_stopped(void);
 // Data Socket
 data_socket_t *create_data_socket(client_t *client);
 command_status_t connect_data_socket(data_socket_t *data_socket);
+command_status_t initialize_client_data_socket(client_t *client);
 
 // Commands
 command_status_t quit_command(command_t *command, client_t *client);
