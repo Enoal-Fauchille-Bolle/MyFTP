@@ -67,7 +67,7 @@ static command_status_t execute_get_command(client_t *client, char *filepath)
         return COMMAND_FAILURE;
     }
     get_result(client->data_socket->sockfd, filename);
-    printf("File %s downloaded successfully\n", filename);
+    printf("File '%s' downloaded successfully\n", filename);
     destroy_data_socket(client->data_socket);
     client->data_socket = NULL;
     free(filename);
