@@ -49,3 +49,13 @@ int merge_port(int ports[2])
         return -1;
     return (ports[0] * 256) + ports[1];
 }
+
+char *get_filename_from_filepath(const char *filepath)
+{
+    const char *last_slash = strrchr(filepath, '/');
+
+    if (last_slash) {
+        return strdup(last_slash + 1);
+    }
+    return strdup(filepath);
+}

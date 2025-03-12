@@ -77,6 +77,7 @@ command_status_t execute_command(command_t *command, client_t *client);
 char *touppercase(char *str);
 char *trim(char *str);
 int merge_port(int ports[2]);
+char *get_filename_from_filepath(const char *filepath);
 
 // Destroyers
 void destroy_client(client_t *client);
