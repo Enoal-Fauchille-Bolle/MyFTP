@@ -50,6 +50,7 @@ static data_socket_t *setup_data_socket(int *host_port)
     data_socket->addr = init_data_socket_sockin(address, port);
     data_socket->address = address;
     data_socket->port = port;
+    free(host_port);
     return data_socket;
 }
 
