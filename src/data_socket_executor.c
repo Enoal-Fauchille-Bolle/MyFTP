@@ -7,6 +7,17 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Executes a command in a forked process
+ *
+ * Creates a child process to execute the command, allowing for parallel
+ * data transfer operations. Handles cleanup of resources in child process.
+ *
+ * @param connection Client connection structure
+ * @param command_execution Function pointer to the command handler
+ * @param command Command structure to execute
+ * @return COMMAND_SUCCESS on successful fork, COMMAND_FAILURE on error
+ */
 static command_status_t fork_execution(connection_t *connection,
     command_status_t (*command_execution)(connection_t *, command_t *),
     command_t *command)
@@ -28,6 +39,15 @@ static command_status_t fork_execution(connection_t *connection,
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Accepts an incoming connection on a passive data socket
+ *
+ * Waits for and accepts a client connection on the passive mode data socket.
+ * Prints connection information when successful.
+ *
+ * @param data_socket Data socket structure
+ * @return 0 on success, -1 on error
+ */
 static int accept_connection(data_socket_t *data_socket)
 {
     socklen_t addr_len = sizeof(data_socket->addr);
@@ -44,6 +64,15 @@ static int accept_connection(data_socket_t *data_socket)
     return 0;
 }
 
+/**
+ * @brief Establishes connection for active mode data socket
+ *
+ * Attempts to connect to the client's specified address and port
+ * for active mode data transfer.
+ *
+ * @param data_socket Data socket structure
+ * @return 0 on success, -1 on error
+ */
 static int active_connection(data_socket_t *data_socket)
 {
     if (connect(data_socket->client_sockfd,
@@ -55,6 +84,15 @@ static int active_connection(data_socket_t *data_socket)
     return 0;
 }
 
+/**
+ * @brief Establishes data socket connection based on transfer mode
+ *
+ * Handles connection establishment for both active and passive mode
+ * data transfers using the appropriate connection method.
+ *
+ * @param data_socket Data socket structure
+ * @return 0 on success, -1 on error
+ */
 static int establish_data_socket_connection(data_socket_t *data_socket)
 {
     if (data_socket->data_socket_mode == PASSIVE) {
@@ -67,6 +105,17 @@ static int establish_data_socket_connection(data_socket_t *data_socket)
     return 0;
 }
 
+/**
+ * @brief Executes a command that requires data socket connection
+ *
+ * Sets up data connection, executes the command in a child process,
+ * and handles cleanup of data socket resources.
+ *
+ * @param connection Client connection structure
+ * @param command_execution Function pointer to the command handler
+ * @param command Command structure to execute
+ * @return COMMAND_SUCCESS on successful execution, COMMAND_FAILURE on error
+ */
 command_status_t execute_data_socket_command(connection_t *connection,
     command_status_t (*command_execution)(connection_t *, command_t *),
     command_t *command)

@@ -16,3 +16,9 @@ main
 organization
 myftp
 myftp_client
+Doxyfile
+html/
+latex/
+xml/
+rtf/
+man/

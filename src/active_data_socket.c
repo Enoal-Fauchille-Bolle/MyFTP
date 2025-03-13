@@ -7,6 +7,15 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Initializes a new active data socket structure
+ *
+ * Allocates memory for a new data socket structure and initializes it for
+ * active mode operation. Creates a new TCP socket for client communication.
+ *
+ * @return Pointer to initialized data_socket_t structure, NULL if allocation
+ * or socket creation fails
+ */
 static data_socket_t *init_active_data_socket(void)
 {
     data_socket_t *data_socket = malloc(sizeof(data_socket_t));
@@ -25,6 +34,16 @@ static data_socket_t *init_active_data_socket(void)
     return data_socket;
 }
 
+/**
+ * @brief Initializes a socket address structure for active mode connection
+ *
+ * Creates and configures a sockaddr_in structure with the provided IP address
+ * and port number for active mode data transfer.
+ *
+ * @param address Array of 4 integers representing IPv4 address octets
+ * @param port Port number for the data connection
+ * @return Configured sockaddr_in structure
+ */
 static struct sockaddr_in init_sockin(int *address, int port)
 {
     struct sockaddr_in data_socket_addr = {0};
@@ -37,6 +56,16 @@ static struct sockaddr_in init_sockin(int *address, int port)
     return data_socket_addr;
 }
 
+/**
+ * @brief Sets up an active mode data socket connection
+ *
+ * Creates and configures a data socket for active mode FTP data transfer.
+ * Processes the host-port command parameters to extract IP address and port.
+ *
+ * @param host_port Array of 6 integers containing IP (first 4) and port (last
+ * 2) information
+ * @return Pointer to configured data_socket_t structure, NULL if setup fails
+ */
 data_socket_t *setup_active_data_socket(int *host_port)
 {
     data_socket_t *data_socket = init_active_data_socket();

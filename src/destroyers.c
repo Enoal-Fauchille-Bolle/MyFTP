@@ -7,6 +7,17 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Cleans up and destroys server resources
+ *
+ * Closes all client connections, frees allocated memory, and closes server
+ * socket. Sends a closing message to all connected clients before
+ * disconnecting.
+ *
+ * @param server The server structure to destroy
+ * @param fds Array of poll file descriptors
+ * @param connections Array of client connections
+ */
 void destroy_server(
     server_t *server, struct pollfd *fds, connection_t *connections)
 {
@@ -21,6 +32,16 @@ void destroy_server(
     close(server->sockfd);
 }
 
+/**
+ * @brief Cleans up and destroys a data socket
+ *
+ * Closes the data connection socket and frees associated resources.
+ * Handles both passive and active mode connections differently.
+ * Prints status messages if verbose mode is enabled.
+ *
+ * @param data_socket The data socket structure to destroy
+ * @param verbose Flag to enable/disable status messages
+ */
 void destroy_data_socket(data_socket_t *data_socket, bool verbose)
 {
     if (data_socket == NULL)
@@ -42,6 +63,16 @@ void destroy_data_socket(data_socket_t *data_socket, bool verbose)
     free(data_socket);
 }
 
+/**
+ * @brief Cleans up and destroys a client connection
+ *
+ * Frees all resources associated with a client connection including
+ * user data, working directory, client address, data socket, and stream.
+ * Prints disconnection message if verbose mode is enabled.
+ *
+ * @param connection The connection structure to destroy
+ * @param verbose Flag to enable/disable status messages
+ */
 void destroy_connection(connection_t *connection, bool verbose)
 {
     if (connection == NULL)
@@ -59,6 +90,14 @@ void destroy_connection(connection_t *connection, bool verbose)
     fclose(connection->stream);
 }
 
+/**
+ * @brief Cleans up and destroys a command structure
+ *
+ * Frees all memory allocated for the command structure including
+ * the command name and argument vector.
+ *
+ * @param command The command structure to destroy
+ */
 void destroy_command(command_t *command)
 {
     char **tokens = NULL;

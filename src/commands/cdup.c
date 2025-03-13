@@ -7,6 +7,13 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Checks if a directory is valid and closes it
+ *
+ * @param connection The client connection structure
+ * @param directory The directory to check
+ * @return int Returns 1 if directory is invalid, 0 otherwise
+ */
 static int check_directory(connection_t *connection, DIR *directory)
 {
     if (directory != NULL) {
@@ -19,6 +26,13 @@ static int check_directory(connection_t *connection, DIR *directory)
     return 0;
 }
 
+/**
+ * @brief Verifies if a path exists
+ *
+ * @param connection The client connection structure
+ * @param path The path to check
+ * @return int Returns 1 if path doesn't exist, 0 otherwise
+ */
 static int check_exists(connection_t *connection, char *path)
 {
     if (access(path, F_OK) != 0) {
@@ -29,6 +43,11 @@ static int check_exists(connection_t *connection, char *path)
     return 0;
 }
 
+/**
+ * @brief Validates and updates the working directory path
+ *
+ * @param connection The client connection structure
+ */
 static void check_new_path(connection_t *connection)
 {
     if (strncmp(connection->working_directory, connection->server->path,
@@ -38,6 +57,14 @@ static void check_new_path(connection_t *connection)
     }
 }
 
+/**
+ * @brief Changes the current working directory
+ *
+ * @param connection The client connection structure
+ * @param path The target directory path
+ * @return command_status_t COMMAND_SUCCESS if successful, COMMAND_FAILURE
+ * otherwise
+ */
 static command_status_t change_dir(connection_t *connection, char *path)
 {
     DIR *directory = NULL;
@@ -58,6 +85,17 @@ static command_status_t change_dir(connection_t *connection, char *path)
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Handles the CDUP (Change Directory Up) FTP command
+ *
+ * Changes the current working directory to the parent directory.
+ * Requires user to be logged in.
+ *
+ * @param command The parsed command structure
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if successful, COMMAND_FAILURE
+ * otherwise
+ */
 command_status_t cdup_command(command_t *command, connection_t *connection)
 {
     (void)command;

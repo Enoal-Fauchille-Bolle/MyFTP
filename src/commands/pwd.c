@@ -7,6 +7,17 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Handles the PWD (Print Working Directory) FTP command
+ *
+ * Prints the current working directory path.
+ * Requires user to be logged in.
+ *
+ * @param command The parsed command structure (unused)
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if successful, COMMAND_FAILURE
+ * otherwise
+ */
 command_status_t pwd_command(command_t *command, connection_t *connection)
 {
     (void)command;

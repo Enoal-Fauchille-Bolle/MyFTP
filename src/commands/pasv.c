@@ -7,6 +7,16 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Creates a passive data socket for file transfer
+ *
+ * Sets up a passive data socket and sends the connection information to the
+ * client in the format required by FTP protocol (IP address and port number).
+ *
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if socket created successfully,
+ *                         COMMAND_FAILURE on error
+ */
 static command_status_t create_passive_data_socket(connection_t *connection)
 {
     int *ports = NULL;
@@ -29,6 +39,17 @@ static command_status_t create_passive_data_socket(connection_t *connection)
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Handles the PASV (Passive Mode) FTP command
+ *
+ * Initiates passive mode data transfer.
+ * Requires user to be logged in.
+ *
+ * @param command The parsed command structure (unused)
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if passive mode initialized
+ * successfully, COMMAND_FAILURE otherwise
+ */
 command_status_t pasv_command(command_t *command, connection_t *connection)
 {
     (void)command;

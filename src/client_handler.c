@@ -7,6 +7,17 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Reads a line from the client socket stream
+ *
+ * Reads input from the client connection stream until a newline is
+ * encountered. Removes the trailing newline character if present.
+ *
+ * @param connection The client connection structure containing the input
+ * stream
+ * @return Pointer to the read line string, NULL if read fails or connection
+ * closed
+ */
 static char *read_socket(connection_t *connection)
 {
     char *line = NULL;
@@ -23,6 +34,15 @@ static char *read_socket(connection_t *connection)
     return line;
 }
 
+/**
+ * @brief Processes a single client command
+ *
+ * Reads a command from the client, parses it, executes it, and cleans up.
+ * Prints the received command for logging purposes.
+ *
+ * @param connection The client connection structure
+ * @return command_status_t indicating the result of command execution
+ */
 static command_status_t handle_client_command(connection_t *connection)
 {
     command_status_t result = COMMAND_NOT_FOUND;
@@ -42,6 +62,16 @@ static command_status_t handle_client_command(connection_t *connection)
     return result;
 }
 
+/**
+ * @brief Handles an active client connection
+ *
+ * Processes client commands and manages connection state. Handles
+ * disconnection when the client sends a QUIT command or when the connection is
+ * lost.
+ *
+ * @param fd The poll file descriptor for the client socket
+ * @param connection The client connection structure
+ */
 void handle_connection(struct pollfd *fd, connection_t *connection)
 {
     command_status_t result = handle_client_command(connection);

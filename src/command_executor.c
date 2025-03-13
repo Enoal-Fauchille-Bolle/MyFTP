@@ -14,6 +14,15 @@ const command_handler_t command_handlers[] = {{"USER", user_command},
     {"NOOP", noop_command}, {"RETR", retr_command}, {"STOR", stor_command},
     {"LIST", list_command}, {"TYPE", type_command}, {NULL, NULL}};
 
+/**
+ * @brief Sends appropriate error message for unknown or unauthorized commands
+ *
+ * Sends different error messages depending on whether the client is logged in:
+ * - For logged-in users: "500 Unknown command"
+ * - For non-logged-in users: "530 Please login with USER and PASS"
+ *
+ * @param connection The client connection structure
+ */
 static void not_found_message(connection_t *connection)
 {
     if (connection->logged_in) {
@@ -24,6 +33,16 @@ static void not_found_message(connection_t *connection)
     }
 }
 
+/**
+ * @brief Finds the handler function for a given command
+ *
+ * Converts command name to uppercase and searches for a matching handler
+ * in the command_handlers array.
+ *
+ * @param command The command structure containing the command name
+ * @return command_handler_t structure with handler function, or {NULL, NULL}
+ * if not found
+ */
 static command_handler_t get_command_handler(command_t *command)
 {
     touppercase(command->name);
@@ -35,6 +54,16 @@ static command_handler_t get_command_handler(command_t *command)
     return (command_handler_t){NULL, NULL};
 }
 
+/**
+ * @brief Executes a client command
+ *
+ * Processes the command by finding its handler and executing it.
+ * Sends appropriate error messages if command is invalid or not found.
+ *
+ * @param command The parsed command structure to execute
+ * @param connection The client connection structure
+ * @return command_status_t indicating the result of command execution
+ */
 command_status_t execute_command(command_t *command, connection_t *connection)
 {
     command_handler_t handler = {0};

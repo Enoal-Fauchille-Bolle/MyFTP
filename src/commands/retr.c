@@ -7,6 +7,16 @@
 
 #include "myftp.h"
 
+/**
+ * @brief Checks if a file exists and is readable
+ *
+ * Changes to working directory, attempts to open file, and checks permissions.
+ * Sends appropriate error messages to client if file cannot be accessed.
+ *
+ * @param connection The client connection structure
+ * @param command The parsed command structure containing filename
+ * @return int 0 if file exists and is readable, -1 otherwise
+ */
 static int check_file_exists(connection_t *connection, command_t *command)
 {
     FILE *fp = NULL;
@@ -15,8 +25,7 @@ static int check_file_exists(connection_t *connection, command_t *command)
     fp = fopen(command->argv[0], "r");
     chdir(connection->server->path);
     if (fp == NULL && access(command->argv[0], R_OK) != 0) {
-        dprintf(connection->client_sockfd,
-            "550 Permission denied.\r\n");
+        dprintf(connection->client_sockfd, "550 Permission denied.\r\n");
         return -1;
     }
     if (fp == NULL) {
@@ -28,6 +37,17 @@ static int check_file_exists(connection_t *connection, command_t *command)
     return 0;
 }
 
+/**
+ * @brief Executes the file retrieval operation
+ *
+ * Opens the requested file and sends its contents through the data connection.
+ * Changes to working directory for file operations.
+ *
+ * @param connection The client connection structure
+ * @param command The parsed command structure containing filename
+ * @return command_status_t COMMAND_SUCCESS if transfer complete,
+ * COMMAND_FAILURE on error
+ */
 static command_status_t execute_retr_command(
     connection_t *connection, command_t *command)
 {
@@ -52,6 +72,18 @@ static command_status_t execute_retr_command(
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Handles the RETR (Retrieve) FTP command
+ *
+ * Downloads a file from the server to the client.
+ * Requires user to be logged in, a data connection to be established,
+ * and exactly one argument specifying the file to retrieve.
+ *
+ * @param command The parsed command structure
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if file retrieved successfully,
+ *                         COMMAND_FAILURE otherwise
+ */
 command_status_t retr_command(command_t *command, connection_t *connection)
 {
     if (!connection->logged_in) {
