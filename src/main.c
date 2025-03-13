@@ -7,6 +7,13 @@
 
 #include "myftp.h"
 
+static void set_read(bool a)
+{
+    if (a == true)
+        read(STDIN_FILENO, NULL, 0);
+    return;
+}
+
 static void help_page(void)
 {
     puts("USAGE: ./myftp port path");
@@ -40,6 +47,7 @@ static int myftp(int port, char *path)
 {
     server_t server = {0};
 
+    set_read(false);
     server = setup_socket(port, path);
     if (server.sockfd == 0)
         return 84;
