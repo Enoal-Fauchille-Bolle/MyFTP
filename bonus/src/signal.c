@@ -7,7 +7,7 @@
 
 #include "myftp.h"
 
-static bool stop_client = false;
+static volatile sig_atomic_t stop_client = false;
 
 bool is_client_stopped(void)
 {
