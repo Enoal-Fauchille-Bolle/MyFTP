@@ -3,6 +3,31 @@
 ## Overview
 This document details all supported FTP commands, their usage, and response codes.
 
+## Table of Contents
+- [Authentication Commands](#authentication-commands)
+  - [USER](#user)
+  - [PASS](#pass)
+- [Directory Navigation](#directory-navigation)
+  - [CWD](#cwd)
+  - [CDUP](#cdup)
+  - [PWD](#pwd)
+- [File Operations](#file-operations)
+  - [DELE](#dele)
+  - [RETR](#retr)
+  - [STOR](#stor)
+- [Connection Modes](#connection-modes)
+  - [PASV](#pasv)
+  - [PORT](#port)
+- [Data Type](#data-type)
+  - [TYPE](#type)
+- [Directory Listing](#directory-listing)
+  - [LIST](#list)
+- [Other Commands](#other-commands)
+  - [HELP](#help)
+  - [NOOP](#noop)
+  - [QUIT](#quit)
+- [General Response Codes](#general-response-codes)
+
 ## Authentication Commands
 
 ### USER
