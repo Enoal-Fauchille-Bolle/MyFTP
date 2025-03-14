@@ -36,11 +36,14 @@ You can test the server using any standard FTP client or even telnet. For exampl
   ```
 This will allow you to observe the server's responses and verify that it properly accepts connections, processes commands, and handles multiple clients.
 
+## Commands
+See the detailed [commands documentation](docs/commands.md) for a list of supported FTP commands and their usage.
+
 ## Architecture
 See the detailed [architecture documentation](docs/architecture.md) for a visual representation of the system components.
 
-## Commands
-See the detailed [commands documentation](docs/commands.md) for a list of supported FTP commands and their usage.
+## Protocols
+See the detailed [protocols documentation](docs/protocols.md) for a summary of the FTP protocol and its components.
 
 ## RFC959 Compliance
 See the detailed [RFC959 documentation](docs/RFC959.md) for a summary of the protocol and its requirements.
