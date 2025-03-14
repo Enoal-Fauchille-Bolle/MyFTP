@@ -205,15 +205,16 @@ This document details all supported FTP commands, their usage, and response code
 ## Other Commands
 
 ### HELP
-- **Usage**: `HELP [command]`
-- **Description**: Shows available commands or specific command help
+- **Usage**: `HELP`
+- **Description**: Shows available commands
 - **Response Codes**:
   - 214: Help information
-  - 500: Command not recognized
 - **Example**:
 ```
-> HELP PASV
-< 214 PASV: Enter passive mode.
+> HELP
+< 214-The following commands are recognized.
+< USER PASS CWD CDUP QUIT DELE PWD PASV PORT HELP NOOP RETR STOR LIST
+< 214 Help OK.
 ```
 
 ### NOOP
