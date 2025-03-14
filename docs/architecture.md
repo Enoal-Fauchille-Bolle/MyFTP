@@ -5,7 +5,7 @@
 This diagram shows the main components of the FTP server and their interactions.
 
 ```mermaid
-graph TBgraph TB
+graph TB
     subgraph Main
         A[Main Program]
         B[Signal Handler]
