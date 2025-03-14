@@ -1,5 +1,20 @@
 # MyFTP Server
 
+![Language](https://img.shields.io/badge/Language-C-blue)
+![Network](https://img.shields.io/badge/Network-TCP%2FIP-brightgreen)
+![Protocol](https://img.shields.io/badge/Protocol-FTP%20RFC959-yellow)
+![Build](https://img.shields.io/badge/Build-Makefile-orange)
+![POSIX](https://img.shields.io/badge/POSIX-Compliant-gold)
+![Socket](https://img.shields.io/badge/Socket-Berkeley-red)
+![Architecture](https://img.shields.io/badge/Architecture-Client%2FServer-lightblue)
+
+[![Last Commit](https://img.shields.io/github/last-commit/Enoal-Fauchille-Bolle/MyFTP)](https://github.com/Enoal-Fauchille-Bolle/MyFTP/commits/master)
+![Repo Size](https://img.shields.io/github/repo-size/Enoal-Fauchille-Bolle/MyFTP)
+![License](https://img.shields.io/github/license/Enoal-Fauchille-Bolle/MySokoban)
+![Lines of Code](https://tokei.rs/b1/github/Enoal-Fauchille-Bolle/MyFTP)
+[![wakatime](https://wakatime.com/badge/user/018bbded-63e4-4a01-bd5e-21d050739656/project/116ad2d1-337b-4271-b42f-01cf796f5d9d.svg)](https://wakatime.com/badge/user/018bbded-63e4-4a01-bd5e-21d050739656/project/116ad2d1-337b-4271-b42f-01cf796f5d9d)
+
+
 ## Project Description
 My FTP Server is an FTP server project built in C that implements the FTP protocol as defined in RFC959. The project supports handling multiple client connections and long-running processes.
 
