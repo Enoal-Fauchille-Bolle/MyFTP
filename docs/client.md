@@ -66,3 +66,66 @@ Password:
 # Exit
 > quit
 ```
+
+## Architecture
+
+This diagram illustrates the architecture of the MyFTP client:
+
+```mermaid
+graph TD
+    subgraph Main Client
+        A[main.c] --> B[client.c]
+        B --> C{Command Executor}
+    end
+
+    subgraph Connection Management
+        B --> D[Socket Management]
+        D --> E[init_sockin]
+        B --> F[Login Handler]
+        F --> G[read_response]
+    end
+
+    subgraph Command Processing
+        C --> H[Command Parser]
+        H --> I[parse_buffer]
+        C --> J[Command Handlers]
+    end
+
+    subgraph Data Transfer
+        K[Data Socket] --> L[create_data_socket]
+        K --> M[connect_data_socket]
+        K --> N[initialize_client_data_socket]
+    end
+
+    subgraph Command Handlers
+        J --> O[quit/exit]
+        J --> P[help]
+        J --> Q[ls]
+        J --> R[pwd]
+        J --> S[cd]
+        J --> T[get]
+        J --> U[put]
+    end
+
+    subgraph Utilities
+        V[Utils] --> W[touppercase]
+        V --> X[trim]
+        V --> Y[merge_port]
+        V --> Z[get_filename_from_filepath]
+    end
+
+    subgraph Resource Management
+        AA[Destroyers] --> BB[destroy_client]
+        AA --> CC[destroy_command]
+        AA --> DD[destroy_data_socket]
+    end
+
+    %% Connections between components
+    C --> K
+    J --> K
+    T --> K
+    U --> K
+    B --> AA
+    C --> V
+    H --> V
+```
