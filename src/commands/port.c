@@ -9,9 +9,9 @@
 
 /**
  * @brief Parses host and port values from the PORT command argument
- * 
+ *
  * Splits the argument string into 6 integers representing the IP address
- * 
+ *
  * @param arg The command argument string
  * @param host_port Array to store the parsed host and port values
  * @return int 0 on success, -1 on error
@@ -19,11 +19,11 @@
 static int parse_host_port_values(char *arg, int *host_port)
 {
     char *token = strtok(arg, ",");
+
     if (token == NULL) {
         return -1;
     }
     host_port[0] = atoi(token);
-
     for (int i = 1; i < 6; i++) {
         token = strtok(NULL, ",");
         if (token == NULL) {
@@ -54,7 +54,6 @@ static int *get_host_port(char *arg)
         free(host_port);
         return NULL;
     }
-
     return host_port;
 }
 
@@ -70,7 +69,7 @@ static int *get_host_port(char *arg)
  *                         COMMAND_FAILURE on error
  */
 static command_status_t create_active_data_socket(
-connection_t *connection, command_t *command)
+    connection_t *connection, command_t *command)
 {
     int *host_port = get_host_port(command->argv[0]);
 
@@ -81,17 +80,14 @@ connection_t *connection, command_t *command)
     connection->data_socket = setup_active_data_socket(host_port);
     if (connection->data_socket == NULL) {
         dprintf(connection->client_sockfd,
-        "451 Requested action aborted: local error in processing.\r\n");
+            "451 Requested action aborted: local error in processing.\r\n");
         return COMMAND_FAILURE;
     }
-    printf("Active Data socket created on %d.%d.%d.%d:%d\n",
-    host_port[0],
-    host_port[1],
-    host_port[2],
-    host_port[3],
-    connection->data_socket->port);
+    printf("Active Data socket created on %d.%d.%d.%d:%d\n", host_port[0],
+        host_port[1], host_port[2], host_port[3],
+        connection->data_socket->port);
     dprintf(connection->client_sockfd,
-    "200 PORT command successful. Consider using PASV.\r\n");
+        "200 PORT command successful. Consider using PASV.\r\n");
     free(host_port);
     return COMMAND_SUCCESS;
 }
@@ -111,8 +107,8 @@ connection_t *connection, command_t *command)
 command_status_t port_command(command_t *command, connection_t *connection)
 {
     if (!connection->logged_in) {
-        dprintf(
-        connection->client_sockfd, "530 Please login with USER and PASS.\r\n");
+        dprintf(connection->client_sockfd,
+            "530 Please login with USER and PASS.\r\n");
         return COMMAND_FAILURE;
     }
     if (command->argc != 1) {
