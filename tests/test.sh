@@ -467,7 +467,7 @@ test_list_command_directory(){
     sleep 0.2
 
     # Now send LIST on the same control connection
-    echo -e "LIST ..\r" >&3
+    echo -e "LIST src\r" >&3
     sleep 1
 
     # Send QUIT to close the connection
