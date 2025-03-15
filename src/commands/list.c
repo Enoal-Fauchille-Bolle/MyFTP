@@ -24,6 +24,17 @@ static int check_exists(connection_t *connection, char *path)
     return 0;
 }
 
+/**
+ * @brief Changes to the specified directory path
+ *
+ * Changes the current working directory to the path specified in the command.
+ * If no path is specified, uses the current directory (".").
+ *
+ * @param connection The client connection structure
+ * @param command The parsed command structure containing the path
+ * @return command_status_t COMMAND_SUCCESS if directory change successful, 
+ *                         COMMAND_FAILURE otherwise
+ */
 static command_status_t goto_path(connection_t *connection, command_t *command)
 {
     char *path = command->argv[0] ? command->argv[0] : ".";
@@ -37,6 +48,17 @@ static command_status_t goto_path(connection_t *connection, command_t *command)
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Verifies if the directory access is within server bounds
+ *
+ * Checks if the requested directory is accessible and within the server's
+ * root directory bounds. Prevents directory traversal attacks.
+ *
+ * @param connection The client connection structure
+ * @param path The path to verify
+ * @return command_status_t COMMAND_SUCCESS if access is allowed,
+ *                         COMMAND_FAILURE if access denied
+ */
 static command_status_t check_directory_access(
     connection_t *connection, char *path)
 {
@@ -62,6 +84,16 @@ static command_status_t check_directory_access(
     return COMMAND_SUCCESS;
 }
 
+/**
+ * @brief Executes the directory listing command
+ *
+ * Runs the 'ls -l' command and sends its output through the data socket.
+ * Handles command execution errors and sends appropriate FTP responses.
+ *
+ * @param connection The client connection structure
+ * @return command_status_t COMMAND_SUCCESS if listing successful,
+ *                         COMMAND_FAILURE if command fails
+ */
 static command_status_t list_directory(connection_t *connection)
 {
     FILE *fp = NULL;
