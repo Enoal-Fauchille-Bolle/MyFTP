@@ -51,9 +51,11 @@ static command_status_t check_list_response(int sockfd)
     return COMMAND_SUCCESS;
 }
 
-static command_status_t execute_ls_command(client_t *client)
+static command_status_t execute_ls_command(client_t *client, command_t *command)
 {
-    dprintf(client->sockfd, "LIST\r\n");
+    char *path = command->argv[0] ? command->argv[0] : ".";
+
+    dprintf(client->sockfd, "LIST %s\r\n", path);
     if (check_list_response(client->sockfd) == COMMAND_FAILURE) {
         fprintf(stderr, "Error: LIST command failed\n");
         destroy_data_socket(client->data_socket);
@@ -71,7 +73,7 @@ command_status_t ls_command(command_t *command, client_t *client)
     (void)command;
     if (initialize_client_data_socket(client) == COMMAND_FAILURE)
         return COMMAND_FAILURE;
-    if (execute_ls_command(client) == COMMAND_FAILURE)
+    if (execute_ls_command(client, command) == COMMAND_FAILURE)
         return COMMAND_FAILURE;
     return COMMAND_SUCCESS;
 }
