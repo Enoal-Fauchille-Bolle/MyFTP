@@ -32,7 +32,7 @@ static int check_exists(connection_t *connection, char *path)
  *
  * @param connection The client connection structure
  * @param command The parsed command structure containing the path
- * @return command_status_t COMMAND_SUCCESS if directory change successful, 
+ * @return command_status_t COMMAND_SUCCESS if directory change successful,
  *                         COMMAND_FAILURE otherwise
  */
 static command_status_t goto_path(connection_t *connection, command_t *command)
